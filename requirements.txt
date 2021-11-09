@@ -1,0 +1,10 @@
+numpy==1.19
+scikit-image
+matplotlib
+scipy
+sklearn
+PyOpenGL-accelerate==3.1.5
+PyOpenGL==3.1.5
+pyprind
+gym[all]==0.10.3
+git+https://github.com/hermanjakobsen/mujoco-py
