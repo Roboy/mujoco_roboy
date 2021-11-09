@@ -1,20 +1,21 @@
-# Build docker:
+# Setup and Running example using docker
 
-`docker build -t mujoco-tendon .`
+#### Build docker and create a container:
 
-# Create a container:
+- Build docker: `docker build -t mujoco-tendon .`
 
-`./run.sh`
+- Create a container: `./run.sh`
 
-# Access the docker terminal:
+- Run `xhost +` on your machine to allow `X11 forwarding`
 
-# Get the docker name:
-`docker container ls`
+#### Access the docker terminal:
 
-# and check for the container name column
+- Get the docker name: `docker container ls`
 
-`docker exec -it CONTAINER_NAME /bin/bash`
+- and check for the container name column `docker exec -it CONTAINER_NAME /bin/bash`
 
-# Run the example:
+- Run the example: `python ant_test.py`
 
-`python ant_test.py`
+# Running Roboy example
+
+- Inside the docker container `cd ~/.mujoco && ./mujoco200/bin/simulate /src/roboy_model/model.xml`
