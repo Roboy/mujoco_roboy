@@ -2,8 +2,8 @@
     <compiler coordinate="local" inertiafromgeom="true" angle="radian" meshdir="meshes/" />
     <option integrator="RK4" timestep="0.01"/>
     <default>
-        <joint armature="1" damping="0.5" limited="true"/>
-        <geom conaffinity="0" condim="3" density="5.0" friction="1 0.5 0.5" margin="0.01" rgba="0.8 0.6 0.4 1"/>
+        <joint armature="0.005" damping="0.1" frictionloss="0.1" limited="true"/>
+        <geom conaffinity="0" condim="3" friction="0 0 0" density="1000.0" />
     </default>
     <size njmax="500" nconmax="100" />
     <asset>
@@ -11,7 +11,6 @@
         <texture name="texplane" type="2d" builtin="checker" rgb1=".25 .25 .25" rgb2=".3 .3 .3" width="512" height="512" mark="cross" markrgb=".8 .8 .8"/>  
         <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
     </asset>
-    <size njmax="500" nconmax="100" />
     <asset>
         <mesh name="hand_right" file="hand_right.stl" scale="0.001 0.001 0.001" />
         <mesh name="lowerarm_right" file="lowerarm_right.stl" scale="0.001 0.001 0.001" />
@@ -35,7 +34,7 @@
         <mesh name="head_link2" file="head_link2.stl" scale="0.001 0.001 0.001" />
     </asset>
     <worldbody>
-        <geom name="floor" pos="0 0 -0.5" size="0 0 1" type="plane" material="matplane"/>   
+        <geom name="floor" pos="0 0 -0.5" size="0 0 1" type="plane" material="matplane" rgba="0.8 0.6 0.4 1"/>   
         <light directional="true" diffuse=".8 .8 .8" specular=".2 .2 .2" pos="0 0 5" dir="0 1 -5"/>
         <geom pos="0.00776 0.00282 0.62658" type="mesh" mesh="torso" />
         <body name="shoulder_right_link1" pos="-0.21017 0 0.69947">
@@ -105,6 +104,9 @@
                     <inertial pos="0.0155271 0.00286341 -0.203999" quat="0.99963 -0.0142052 0.021431 0.00882814" mass="2.53629" diaginertia="0.0194858 0.0151615 0.00597025" />
                     <joint name="shoulder_left_axis2" pos="0 0 0" axis="-0.22495 0 0.97437" limited="true" range="-0.1 0.1" />
                     <geom pos="0.01104 0.00134 -0.18587" type="mesh" mesh="upperarm_left" />
+
+                    <site name="vp_front_upper_left" pos="0.02505363 -0.05900939 -0.28876869" size="0.01"/> <!-- 0.014013627375889506 -0.06034939017144514 -0.10289868537050147 -->
+                    <site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01"/> <!-- -0.0034634212638682983 0.05589907969527281 -0.1333946750577853 -->
                     <body name="elbow_left" pos="0.00906 0 -0.31208">
                         <inertial pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" mass="0.0993685" diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" />
                         <joint name="elbow_left_axis0" pos="0 0 0" axis="-1 0 0" limited="true" range="0 0.82173" />
@@ -113,6 +115,9 @@
                             <inertial pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" mass="1.37556" diaginertia="0.00561403 0.0053067 0.00159342" />
                             <joint name="elbow_left_axis1" pos="0 0 0" axis="-1 0 0" range="0 0.82173"/>
                             <geom pos="0.00049 -0.00129 -0.09306" type="mesh" mesh="lowerarm_left" />
+
+                            <site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01"/> <!-- 0.023003033954000038 -0.03842459085910689 0.06573106615103293 -->
+                            <site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01"/> <!-- -0.001996966045999962 0.04568287843059425 0.09415356490261659 -->
                             <body name="wrist_left_link1" pos="-0.00073 0 -0.21039">
                                 <inertial pos="1.30833e-07 -2.25237e-07 1.2008e-07" quat="0.869654 -0.183361 -0.382988 0.251793" mass="0.00426485" diaginertia="1.8827e-07 1.86303e-07 1.86258e-07" />
                                 <joint name="wrist_left_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.5 0.5" />
@@ -134,8 +139,20 @@
             </body>
         </body>
     </worldbody>
+    <tendon>
+        <spatial name="T_M0" width="0.0025" rgba="0.55 0.78 0.55 1">
+            <site site="vp_front_upper_left"/>
+            <site site="vp_front_lower_left"/>
+        </spatial>
+        <spatial name="T_M1" width="0.0025" rgba="0.55 0.78 0.55 1">
+            <site site="vp_back_upper_left"/>
+            <site site="vp_back_lower_left"/>
+        </spatial>
+    </tendon>
     <actuator>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis0" name="shoulder_right_axis0"/>
+      <muscle name="T_M0" tendon="T_M0" scale="200"/>
+      <muscle name="T_M1" tendon="T_M1" scale="200"/>
+      <!-- <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis0" name="shoulder_right_axis0"/>
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis1" name="shoulder_right_axis1"/>
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis2" name="shoulder_right_axis2"/>
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_right_axis0" name="elbow_right_axis0"/>
@@ -153,6 +170,6 @@
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_left_axis1" name="elbow_left_axis1"/>
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis0" name="wrist_left_axis0"/>
       <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis1" name="wrist_left_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis2" name="wrist_left_axis2"/>
+      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis2" name="wrist_left_axis2"/> -->
     </actuator>
 </mujoco>
