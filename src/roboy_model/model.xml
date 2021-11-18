@@ -4,6 +4,8 @@
     <default>
         <joint armature="0.005" damping="0.1" frictionloss="0.1" limited="true"/>
         <geom conaffinity="0" condim="3" friction="0 0 0" density="1000.0" />
+        <site size="0.01" rgba="1 0 0 1" />
+        <tendon rgba="0.55 0.78 0.55 1" />
     </default>
     <size njmax="500" nconmax="100" />
     <asset>
@@ -36,39 +38,41 @@
     <worldbody>
         <geom name="floor" pos="0 0 -0.5" size="0 0 1" type="plane" material="matplane" rgba="0.8 0.6 0.4 1"/>   
         <light directional="true" diffuse=".8 .8 .8" specular=".2 .2 .2" pos="0 0 5" dir="0 1 -5"/>
-        <geom pos="0.00776 0.00282 0.62658" type="mesh" mesh="torso" />
-        <body name="shoulder_right_link1" pos="-0.21017 0 0.69947">
-            <inertial pos="0.000927262 -0.000754323 0.000586995" quat="0.880142 -0.270778 -0.134381 -0.366022" mass="0.00942681" diaginertia="7.88358e-07 6.71508e-07 6.71379e-07" />
-            <joint name="shoulder_right_axis0" pos="0 0 0" axis="0.97437 0 -0.22495" limited="true" range="-1 0.3" />
-            <geom type="mesh" mesh="shoulder_right_link1" />
-            <body name="shoulder_right_link2" pos="0 0 0">
-                <inertial pos="-2.85947e-06 -3.29215e-06 -1.17765e-05" quat="-0.144897 0.75326 -0.229487 0.599116" mass="0.000785157" diaginertia="1.11977e-08 1.11626e-08 1.10533e-08" />
-                <joint name="shoulder_right_axis1" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.2 0" />
-                <geom type="mesh" mesh="shoulder_right_link2" />
-                <body name="upperarm_right" pos="0 0 0">
-                    <inertial pos="-0.0160421 0.00237049 -0.200038" quat="0.999485 -0.017451 -0.0266535 -0.00373064" mass="2.25162" diaginertia="0.0145152 0.0105586 0.00541118" />
-                    <joint name="shoulder_right_axis2" pos="0 0 0" axis="-0.22495 0 -0.97437" limited="true" range="-0.1 0.1" />
-                    <geom pos="-0.01115 0.00138 -0.17499" type="mesh" mesh="upperarm_right" />
-                    <body name="elbow_right" pos="-0.00106 0 -0.31208">
-                        <inertial pos="-0.00446646 0.0265529 -0.0448489" quat="0.99668 -0.0333565 -0.00284806 0.0742165" mass="0.0993452" diaginertia="6.11957e-05 4.10767e-05 3.23314e-05" />
-                        <joint name="elbow_right_axis0" pos="0 0 0" axis="-1 0 0" limited="true" range="0 0.82173" />
-                        <geom pos="-0.00474 0.03025 -0.04463" type="mesh" mesh="elbow_right" />
-                        <body name="lowerarm_right" pos="0.00042 0 -0.09">
-                            <inertial pos="-0.00776405 -0.00141596 -0.0808734" quat="0.757636 0.000456816 -0.0157489 0.652487" mass="1.39833" diaginertia="0.00699686 0.0067429 0.00144117" />
-                            <joint name="elbow_right_axis1" pos="0 0 0" axis="1 0 0"   limited="true" range="-0.82173 0"/>
-                            <geom pos="-0.00733 -0.00117 -0.11185" type="mesh" mesh="lowerarm_right" />
-                            <body name="wrist_right_link1" pos="-0.00616 0 -0.21039">
-                                <inertial pos="-1.84967e-07 -6.44416e-08 -1.26282e-08" quat="0.884437 -0.0789859 0.352699 -0.295187" mass="0.00426506" diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" />
-                                <joint name="wrist_right_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.5 0.5" />
-                                <geom type="mesh" mesh="wrist_right_link1" />
-                                <body name="wrist_right_link2" pos="0 0 0">
-                                    <inertial pos="2.40008e-06 -5.41852e-06 -8.36307e-07" quat="-0.111202 0.737183 -0.247103 0.618979" mass="0.000332748" diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" />
-                                    <joint name="wrist_right_axis1" pos="0 0 0" axis="0 -1 0" limited="true" range="-0.5 0.5" />
-                                    <geom type="mesh" mesh="wrist_right_link2" />
-                                    <body name="hand_right" pos="0 0 0">
-                                        <inertial pos="-0.00826361 0.0008102 -0.0579318" quat="0.992988 0.0209019 0.0988729 0.0613437" mass="0.217705" diaginertia="0.000266909 0.000217005 9.08298e-05" />
-                                        <joint name="wrist_right_axis2" pos="0 0 0" axis="0 0 -1" limited="true" range="-0.5 0.5" />
-                                        <geom pos="-0.00506 0.00106 -0.06163" type="mesh" mesh="hand_right" />
+        <body name="torso" pos="0 0 0">
+            <geom pos="0.00776 0.00282 0.62658" type="mesh" mesh="torso" />
+            <body name="shoulder_right_link1" pos="-0.21017 0 0.69947">
+                <inertial pos="0.000927262 -0.000754323 0.000586995" quat="0.880142 -0.270778 -0.134381 -0.366022" mass="0.00942681" diaginertia="7.88358e-07 6.71508e-07 6.71379e-07" />
+                <joint name="shoulder_right_axis0" pos="0 0 0" axis="0.97437 0 -0.22495" limited="true" range="-1 0.3" />
+                <geom type="mesh" mesh="shoulder_right_link1" />
+                <body name="shoulder_right_link2" pos="0 0 0">
+                    <inertial pos="-2.85947e-06 -3.29215e-06 -1.17765e-05" quat="-0.144897 0.75326 -0.229487 0.599116" mass="0.000785157" diaginertia="1.11977e-08 1.11626e-08 1.10533e-08" />
+                    <joint name="shoulder_right_axis1" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.2 0" />
+                    <geom type="mesh" mesh="shoulder_right_link2" />
+                    <body name="upperarm_right" pos="0 0 0">
+                        <inertial pos="-0.0160421 0.00237049 -0.200038" quat="0.999485 -0.017451 -0.0266535 -0.00373064" mass="2.25162" diaginertia="0.0145152 0.0105586 0.00541118" />
+                        <joint name="shoulder_right_axis2" pos="0 0 0" axis="-0.22495 0 -0.97437" limited="true" range="-0.1 0.1" />
+                        <geom pos="-0.01115 0.00138 -0.17499" type="mesh" mesh="upperarm_right" />
+                        <body name="elbow_right" pos="-0.00106 0 -0.31208">
+                            <inertial pos="-0.00446646 0.0265529 -0.0448489" quat="0.99668 -0.0333565 -0.00284806 0.0742165" mass="0.0993452" diaginertia="6.11957e-05 4.10767e-05 3.23314e-05" />
+                            <joint name="elbow_right_axis0" pos="0 0 0" axis="-1 0 0" limited="true" range="0 0.82173" />
+                            <geom pos="-0.00474 0.03025 -0.04463" type="mesh" mesh="elbow_right" />
+                            <body name="lowerarm_right" pos="0.00042 0 -0.09">
+                                <inertial pos="-0.00776405 -0.00141596 -0.0808734" quat="0.757636 0.000456816 -0.0157489 0.652487" mass="1.39833" diaginertia="0.00699686 0.0067429 0.00144117" />
+                                <joint name="elbow_right_axis1" pos="0 0 0" axis="1 0 0"   limited="true" range="-0.82173 0"/>
+                                <geom pos="-0.00733 -0.00117 -0.11185" type="mesh" mesh="lowerarm_right" />
+                                <body name="wrist_right_link1" pos="-0.00616 0 -0.21039">
+                                    <inertial pos="-1.84967e-07 -6.44416e-08 -1.26282e-08" quat="0.884437 -0.0789859 0.352699 -0.295187" mass="0.00426506" diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" />
+                                    <joint name="wrist_right_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.5 0.5" />
+                                    <geom type="mesh" mesh="wrist_right_link1" />
+                                    <body name="wrist_right_link2" pos="0 0 0">
+                                        <inertial pos="2.40008e-06 -5.41852e-06 -8.36307e-07" quat="-0.111202 0.737183 -0.247103 0.618979" mass="0.000332748" diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" />
+                                        <joint name="wrist_right_axis1" pos="0 0 0" axis="0 -1 0" limited="true" range="-0.5 0.5" />
+                                        <geom type="mesh" mesh="wrist_right_link2" />
+                                        <body name="hand_right" pos="0 0 0">
+                                            <inertial pos="-0.00826361 0.0008102 -0.0579318" quat="0.992988 0.0209019 0.0988729 0.0613437" mass="0.217705" diaginertia="0.000266909 0.000217005 9.08298e-05" />
+                                            <joint name="wrist_right_axis2" pos="0 0 0" axis="0 0 -1" limited="true" range="-0.5 0.5" />
+                                            <geom pos="-0.00506 0.00106 -0.06163" type="mesh" mesh="hand_right" />
+                                        </body>
                                     </body>
                                 </body>
                             </body>
@@ -76,60 +80,60 @@
                     </body>
                 </body>
             </body>
-        </body>
-        <body name="head_link1" pos="0 0 0.84075">
-            <inertial pos="-1.84967e-07 1.26282e-08 -6.44416e-08" quat="0.681242 0.56954 0.458125 0.0406667" mass="0.00426506" diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" />
-            <joint name="head_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.8 0.8" />
-            <geom type="mesh" mesh="head_link1" />
-            <body name="head_link2" pos="0 0 0">
-                <inertial pos="2.40008e-06 8.3631e-07 -5.41852e-06" quat="0.262957 0.612412 0.442635 0.599899" mass="0.000332748" diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" />
-                <joint name="head_axis1" pos="0 0 0" axis="0 0 -1" limited="true" range="-0.56 0.56" />
-                <geom type="mesh" mesh="head_link2" />
-                <body name="head" pos="0 0 0">
-                    <inertial pos="2.62453e-05 0.00353193 0.168565" quat="0.391628 0.920111 -0.00432853 -0.00220546" mass="13.2108" diaginertia="0.139882 0.126953 0.109622" />
-                    <joint name="head_axis2" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" />
-                    <geom pos="-0.0002 -0.01814 0.1557" type="mesh" mesh="head" />
+            <body name="head_link1" pos="0 0 0.84075">
+                <inertial pos="-1.84967e-07 1.26282e-08 -6.44416e-08" quat="0.681242 0.56954 0.458125 0.0406667" mass="0.00426506" diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" />
+                <joint name="head_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.8 0.8" />
+                <geom type="mesh" mesh="head_link1" />
+                <body name="head_link2" pos="0 0 0">
+                    <inertial pos="2.40008e-06 8.3631e-07 -5.41852e-06" quat="0.262957 0.612412 0.442635 0.599899" mass="0.000332748" diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" />
+                    <joint name="head_axis1" pos="0 0 0" axis="0 0 -1" limited="true" range="-0.56 0.56" />
+                    <geom type="mesh" mesh="head_link2" />
+                    <body name="head" pos="0 0 0">
+                        <inertial pos="2.62453e-05 0.00353193 0.168565" quat="0.391628 0.920111 -0.00432853 -0.00220546" mass="13.2108" diaginertia="0.139882 0.126953 0.109622" />
+                        <joint name="head_axis2" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" />
+                        <geom pos="-0.0002 -0.01814 0.1557" type="mesh" mesh="head" />
+                    </body>
                 </body>
             </body>
-        </body>
-        <body name="shoulder_left_link1" pos="0.21017 0 0.69947">
-            <inertial pos="-0.000936989 -0.000780799 0.000572682" quat="0.919964 -0.0195359 0.228955 0.317592" mass="0.00940856" diaginertia="7.86417e-07 6.69919e-07 6.68396e-07" />
-            <joint name="shoulder_left_axis0" pos="0 0 0" axis="0.97437 0 0.22495" limited="true" range="-1 0.3" />
-            <geom type="mesh" mesh="shoulder_left_link1" />
-            <body name="shoulder_left_link2" pos="0 0 0">
-                <inertial pos="-2.77912e-07 -9.17407e-07 2.13575e-05" quat="0.354832 0.541579 0.296234 0.702162" mass="0.000782222" diaginertia="1.11432e-08 1.11192e-08 1.09455e-08" />
-                <joint name="shoulder_left_axis1" pos="0 0 0" axis="0 1 0" limited="true" range="-1.2 0" />
-                <geom type="mesh" mesh="shoulder_left_link2" />
-                <body name="upperarm_left" pos="0 0 0">
-                    <inertial pos="0.0155271 0.00286341 -0.203999" quat="0.99963 -0.0142052 0.021431 0.00882814" mass="2.53629" diaginertia="0.0194858 0.0151615 0.00597025" />
-                    <joint name="shoulder_left_axis2" pos="0 0 0" axis="-0.22495 0 0.97437" limited="true" range="-0.1 0.1" />
-                    <geom pos="0.01104 0.00134 -0.18587" type="mesh" mesh="upperarm_left" />
+            <body name="shoulder_left_link1" pos="0.21017 0 0.69947">
+                <inertial pos="-0.000936989 -0.000780799 0.000572682" quat="0.919964 -0.0195359 0.228955 0.317592" mass="0.00940856" diaginertia="7.86417e-07 6.69919e-07 6.68396e-07" />
+                <joint name="shoulder_left_axis0" pos="0 0 0" axis="0.97437 0 0.22495" limited="true" range="-1 0.3" />
+                <geom type="mesh" mesh="shoulder_left_link1" />
+                <body name="shoulder_left_link2" pos="0 0 0">
+                    <inertial pos="-2.77912e-07 -9.17407e-07 2.13575e-05" quat="0.354832 0.541579 0.296234 0.702162" mass="0.000782222" diaginertia="1.11432e-08 1.11192e-08 1.09455e-08" />
+                    <joint name="shoulder_left_axis1" pos="0 0 0" axis="0 1 0" limited="true" range="-1.2 0" />
+                    <geom type="mesh" mesh="shoulder_left_link2" />
+                    <body name="upperarm_left" pos="0 0 0">
+                        <inertial pos="0.0155271 0.00286341 -0.203999" quat="0.99963 -0.0142052 0.021431 0.00882814" mass="2.53629" diaginertia="0.0194858 0.0151615 0.00597025" />
+                        <joint name="shoulder_left_axis2" pos="0 0 0" axis="-0.22495 0 0.97437" limited="true" range="-0.1 0.1" />
+                        <geom pos="0.01104 0.00134 -0.18587" type="mesh" mesh="upperarm_left" />
 
-                    <site name="vp_front_upper_left" pos="0.02505363 -0.05900939 -0.28876869" size="0.01"/> <!-- 0.014013627375889506 -0.06034939017144514 -0.10289868537050147 -->
-                    <site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01"/> <!-- -0.0034634212638682983 0.05589907969527281 -0.1333946750577853 -->
-                    <body name="elbow_left" pos="0.00906 0 -0.31208">
-                        <inertial pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" mass="0.0993685" diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" />
-                        <joint name="elbow_left_axis0" pos="0 0 0" axis="-1 0 0" limited="true" range="0 0.82173" />
-                        <geom pos="-0.00325 0.03025 -0.04463" type="mesh" mesh="elbow_left" />
-                        <body name="lowerarm_left" pos="-0.0015 0 -0.09">
-                            <inertial pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" mass="1.37556" diaginertia="0.00561403 0.0053067 0.00159342" />
-                            <joint name="elbow_left_axis1" pos="0 0 0" axis="-1 0 0" range="0 0.82173"/>
-                            <geom pos="0.00049 -0.00129 -0.09306" type="mesh" mesh="lowerarm_left" />
+                        <site name="vp_front_upper_left" pos="0.02505363 -0.05900939 -0.28876869" size="0.01"/> <!-- 0.014013627375889506 -0.06034939017144514 -0.10289868537050147 -->
+                        <site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01"/> <!-- -0.0034634212638682983 0.05589907969527281 -0.1333946750577853 -->
+                        <body name="elbow_left" pos="0.00906 0 -0.31208">
+                            <inertial pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" mass="0.0993685" diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" />
+                            <joint name="elbow_left_axis0" pos="0 0 0" axis="-1 0 0" limited="true" range="0 0.82173" />
+                            <geom pos="-0.00325 0.03025 -0.04463" type="mesh" mesh="elbow_left" />
+                            <body name="lowerarm_left" pos="-0.0015 0 -0.09">
+                                <inertial pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" mass="1.37556" diaginertia="0.00561403 0.0053067 0.00159342" />
+                                <joint name="elbow_left_axis1" pos="0 0 0" axis="-1 0 0" range="0 0.82173"/>
+                                <geom pos="0.00049 -0.00129 -0.09306" type="mesh" mesh="lowerarm_left" />
 
-                            <site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01"/> <!-- 0.023003033954000038 -0.03842459085910689 0.06573106615103293 -->
-                            <site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01"/> <!-- -0.001996966045999962 0.04568287843059425 0.09415356490261659 -->
-                            <body name="wrist_left_link1" pos="-0.00073 0 -0.21039">
-                                <inertial pos="1.30833e-07 -2.25237e-07 1.2008e-07" quat="0.869654 -0.183361 -0.382988 0.251793" mass="0.00426485" diaginertia="1.8827e-07 1.86303e-07 1.86258e-07" />
-                                <joint name="wrist_left_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.5 0.5" />
-                                <geom type="mesh" mesh="wrist_left_link1" />
-                                <body name="wrist_left_link2" pos="0 0 0">
-                                    <inertial pos="-6.28727e-07 -8.87226e-07 -3.47146e-06" quat="0.606843 0.39241 0.507701 0.469038" mass="0.000332384" diaginertia="2.66899e-09 2.66171e-09 2.64405e-09" />
-                                    <joint name="wrist_left_axis1" pos="0 0 0" axis="0 1 0" limited="true" range="-0.5 0.5" />
-                                    <geom type="mesh" mesh="wrist_left_link2" />
-                                    <body name="hand_left" pos="0 0 0">
-                                        <inertial pos="0.00826358 0.000811807 -0.0579333" quat="0.992984 0.0210746 -0.0988514 -0.0613766" mass="0.21774" diaginertia="0.000267022 0.000217093 9.08555e-05" />
-                                        <joint name="wrist_left_axis2" pos="0 0 0" axis="0 0 1" limited="true" range="-0.5 0.5" />
-                                        <geom pos="0.00506 0.00106 -0.06163" type="mesh" mesh="hand_left" />
+                                <site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01"/> <!-- 0.023003033954000038 -0.03842459085910689 0.06573106615103293 -->
+                                <site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01"/> <!-- -0.001996966045999962 0.04568287843059425 0.09415356490261659 -->
+                                <body name="wrist_left_link1" pos="-0.00073 0 -0.21039">
+                                    <inertial pos="1.30833e-07 -2.25237e-07 1.2008e-07" quat="0.869654 -0.183361 -0.382988 0.251793" mass="0.00426485" diaginertia="1.8827e-07 1.86303e-07 1.86258e-07" />
+                                    <joint name="wrist_left_axis0" pos="0 0 0" axis="1 0 0" limited="true" range="-0.5 0.5" />
+                                    <geom type="mesh" mesh="wrist_left_link1" />
+                                    <body name="wrist_left_link2" pos="0 0 0">
+                                        <inertial pos="-6.28727e-07 -8.87226e-07 -3.47146e-06" quat="0.606843 0.39241 0.507701 0.469038" mass="0.000332384" diaginertia="2.66899e-09 2.66171e-09 2.64405e-09" />
+                                        <joint name="wrist_left_axis1" pos="0 0 0" axis="0 1 0" limited="true" range="-0.5 0.5" />
+                                        <geom type="mesh" mesh="wrist_left_link2" />
+                                        <body name="hand_left" pos="0 0 0">
+                                            <inertial pos="0.00826358 0.000811807 -0.0579333" quat="0.992984 0.0210746 -0.0988514 -0.0613766" mass="0.21774" diaginertia="0.000267022 0.000217093 9.08555e-05" />
+                                            <joint name="wrist_left_axis2" pos="0 0 0" axis="0 0 1" limited="true" range="-0.5 0.5" />
+                                            <geom pos="0.00506 0.00106 -0.06163" type="mesh" mesh="hand_left" />
+                                        </body>
                                     </body>
                                 </body>
                             </body>
@@ -140,36 +144,7 @@
         </body>
     </worldbody>
     <tendon>
-        <spatial name="T_M0" width="0.0025" rgba="0.55 0.78 0.55 1">
-            <site site="vp_front_upper_left"/>
-            <site site="vp_front_lower_left"/>
-        </spatial>
-        <spatial name="T_M1" width="0.0025" rgba="0.55 0.78 0.55 1">
-            <site site="vp_back_upper_left"/>
-            <site site="vp_back_lower_left"/>
-        </spatial>
     </tendon>
     <actuator>
-      <muscle name="T_M0" tendon="T_M0" scale="200"/>
-      <muscle name="T_M1" tendon="T_M1" scale="200"/>
-      <!-- <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis0" name="shoulder_right_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis1" name="shoulder_right_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_right_axis2" name="shoulder_right_axis2"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_right_axis0" name="elbow_right_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_right_axis1" name="elbow_right_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_right_axis0" name="wrist_right_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_right_axis1" name="wrist_right_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_right_axis2" name="wrist_right_axis2"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="head_axis0" name="head_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="head_axis1" name="head_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="head_axis2" name="head_axis2"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_left_axis0" name="shoulder_left_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_left_axis1" name="shoulder_left_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="shoulder_left_axis2" name="shoulder_left_axis2"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_left_axis0" name="elbow_left_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="elbow_left_axis1" name="elbow_left_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis0" name="wrist_left_axis0"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis1" name="wrist_left_axis1"/>
-      <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="wrist_left_axis2" name="wrist_left_axis2"/> -->
     </actuator>
 </mujoco>
