@@ -1,21 +1,15 @@
-# Setup and Running example using docker
+# Setup and start Dockerfile
 
-#### Build docker and create a container:
+#### Create Dockerfile
 
-- Build docker: `docker build -t mujoco_tendon .`
+run `docker build -t mujoco_tendon .` from inside the mujoco_tendon folder.
 
-- Create a container: `./run.sh`
+#### Setup the Dockerfile:
+run `./setup.sh`
 
-- Run `xhost +` on your machine to allow `X11 forwarding`
+#### Start the Docker container
+run `./start.sh`
 
-#### Access the docker terminal:
-
-- Get the docker name: `docker container ls`
-
-- and check for the container name column `docker exec -it CONTAINER_NAME /bin/bash`
-
-- Run the example: `python ant_test.py`
-
-# Running Roboy example
-
-- Inside the docker container `cd ~/.mujoco && ./mujoco200/bin/simulate /src/roboy_model/model.xml`
+#### Simulate an XML
+run `./simulate.sh` in the same folder as the XML to be simulated.
+Make sure the XML-path inside simulate.sh is correct.
