@@ -1,3 +1,3 @@
 xhost +
-docker container start mujoco-tendon
-docker exec -it mujoco-tendon /bin/bash
+docker container start mujoco_tendon
+docker exec -it mujoco_tendon /bin/bash

@@ -2,7 +2,7 @@
 
 #### Build docker and create a container:
 
-- Build docker: `docker build -t mujoco-tendon .`
+- Build docker: `docker build -t mujoco_tendon .`
 
 - Create a container: `./run.sh`
 

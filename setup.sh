@@ -1,5 +1,5 @@
 export DISPLAY=$DISPLAY;
-export MUJOCO_PROJECT_PATH=/home/florian/Roboy/mujoco-tendon;
+export MUJOCO_PROJECT_PATH=/home/florian/Roboy/mujoco_tendon;
 
 docker run \
     --env="DISPLAY=${DISPLAY}" \
@@ -10,5 +10,5 @@ docker run \
     -d \
     --network host \
     --privileged \
-    --name mujoco-tendon \
-    -it mujoco-tendon /bin/bash
+    --name mujoco_tendon \
+    -it mujoco_tendon /bin/bash
