@@ -10,5 +10,5 @@ docker run \
     -d \
     --network host \
     --privileged \
-    --name mujoco-tendon \
-    -it mujoco-tendon /bin/bash
+    --name ros-mujoco-tendon \
+    -it ros-mujoco-tendon /bin/bash

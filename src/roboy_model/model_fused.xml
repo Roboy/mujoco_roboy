@@ -1,0 +1,592 @@
+<mujoco model="upper_body">
+	<compiler angle="radian" coordinate="local" inertiafromgeom="true" meshdir="meshes/" />
+	<option integrator="RK4" timestep="0.01" />
+	<default>
+		<joint armature="0.5" damping="0.1" frictionloss="0.1" limited="true" />
+		<geom conaffinity="0" condim="3" density="1000.0" friction="0 0 0" />
+		<site rgba="1 0.7 0 0.2" size="0.01" />
+		<tendon rgba="0.1 0.4 0.6 1" />
+	</default>
+	<size nconmax="100" njmax="500" />
+	<asset>
+		<texture builtin="gradient" height="512" rgb1="0.6 0.6 0.6" rgb2="0 0 0" type="skybox" width="512" />
+		<texture builtin="checker" height="512" mark="cross" markrgb=".8 .8 .8" name="texplane" rgb1=".25 .25 .25" rgb2=".3 .3 .3" type="2d" width="512" />
+		<material name="matplane" reflectance="0.3" texrepeat="1 1" texture="texplane" texuniform="true" />
+	</asset>
+	<asset>
+		<mesh file="hand_right.stl" name="hand_right" scale="0.001 0.001 0.001" />
+		<mesh file="lowerarm_right.stl" name="lowerarm_right" scale="0.001 0.001 0.001" />
+		<mesh file="upperarm_left.stl" name="upperarm_left" scale="0.001 0.001 0.001" />
+		<mesh file="hand_left.stl" name="hand_left" scale="0.001 0.001 0.001" />
+		<mesh file="lowerarm_left.stl" name="lowerarm_left" scale="0.001 0.001 0.001" />
+		<mesh file="upperarm_right.stl" name="upperarm_right" scale="0.001 0.001 0.001" />
+		<mesh file="head.stl" name="head" scale="0.001 0.001 0.001" />
+		<mesh file="torso.stl" name="torso" scale="0.001 0.001 0.001" />
+		<mesh file="elbow_right.stl" name="elbow_right" scale="0.001 0.001 0.001" />
+		<mesh file="shoulder_right_link1.stl" name="shoulder_right_link1" scale="0.001 0.001 0.001" />
+		<mesh file="shoulder_right_link2.stl" name="shoulder_right_link2" scale="0.001 0.001 0.001" />
+		<mesh file="wrist_right_link1.stl" name="wrist_right_link1" scale="0.001 0.001 0.001" />
+		<mesh file="wrist_right_link2.stl" name="wrist_right_link2" scale="0.001 0.001 0.001" />
+		<mesh file="elbow_left.stl" name="elbow_left" scale="0.001 0.001 0.001" />
+		<mesh file="shoulder_left_link1.stl" name="shoulder_left_link1" scale="0.001 0.001 0.001" />
+		<mesh file="shoulder_left_link2.stl" name="shoulder_left_link2" scale="0.001 0.001 0.001" />
+		<mesh file="wrist_left_link1.stl" name="wrist_left_link1" scale="0.001 0.001 0.001" />
+		<mesh file="wrist_left_link2.stl" name="wrist_left_link2" scale="0.001 0.001 0.001" />
+		<mesh file="head_link1.stl" name="head_link1" scale="0.001 0.001 0.001" />
+		<mesh file="head_link2.stl" name="head_link2" scale="0.001 0.001 0.001" />
+	</asset>
+	<worldbody>
+		<geom material="matplane" name="floor" pos="0 0 -0.5" rgba="0.8 0.6 0.4 1" size="0 0 1" type="plane" />
+		<light diffuse=".8 .8 .8" dir="0 1 -5" directional="true" pos="0 0 5" specular=".2 .2 .2" />
+		<body name="torso" pos="0 0 0">
+			<geom mesh="torso" pos="0.00776 0.00282 0.62658" type="mesh" />
+			<body name="shoulder_right_link1" pos="-0.21017 0 0.69947">
+                <geom name="shoulder_right_ball" type="sphere" pos="0.0 0.0 0.0" zaxis="0 1 0" size=".025 .025" rgba="1 1 0.5 .5" mass="0.3"/>
+				<inertial diaginertia="7.88358e-07 6.71508e-07 6.71379e-07" mass="0.00942681" pos="0.000927262 -0.000754323 0.000586995" quat="0.880142 -0.270778 -0.134381 -0.366022" />
+				<joint axis="0.97437 0 -0.22495" limited="true" name="shoulder_right_axis0" pos="0 0 0" range="-1 0.3" />
+				<geom mesh="shoulder_right_link1" type="mesh" />
+				<body name="shoulder_right_link2" pos="0 0 0">
+					<geom name="shoulder_right_bar" type="cylinder" pos="-0.0075 0.0 -0.1" zaxis="0 0 1" size=".015 .08" rgba="1 1 0.5 .5" mass="0.3"/>
+
+					<site name="shoulder_right_bar_back" pos="0.0 0.02 -0.075" size="0.01" rgba="0.7 0.8 0.95 1.0" group="1"/>
+					<site name="shoulder_right_bar_front" pos="0.0 -0.02 -0.075" size="0.01" rgba="0.7 0.8 0.95 1.0" group="1"/>
+
+					<inertial diaginertia="1.11977e-08 1.11626e-08 1.10533e-08" mass="0.000785157" pos="-2.85947e-06 -3.29215e-06 -1.17765e-05" quat="-0.144897 0.75326 -0.229487 0.599116" />
+					<joint axis="0 -1 0" limited="true" name="shoulder_right_axis1" pos="0 0 0" range="-1.2 0" />
+					<geom mesh="shoulder_right_link2" type="mesh" />
+
+					<body name="upperarm_right" pos="0 0 0">
+						<inertial diaginertia="0.0145152 0.0105586 0.00541118" mass="2.25162" pos="-0.0160421 0.00237049 -0.200038" quat="0.999485 -0.017451 -0.0266535 -0.00373064" />
+						<joint axis="-0.22495 0 -0.97437" limited="true" name="shoulder_right_axis2" pos="0 0 0" range="-0.1 0.1" />
+						<geom mesh="upperarm_right" pos="-0.01115 0.00138 -0.17499" type="mesh" />
+						<body name="elbow_right" pos="-0.00106 0 -0.31208">
+							<inertial diaginertia="6.11957e-05 4.10767e-05 3.23314e-05" mass="0.0993452" pos="-0.00446646 0.0265529 -0.0448489" quat="0.99668 -0.0333565 -0.00284806 0.0742165" />
+							<joint axis="-1 0 0" limited="true" name="elbow_right_axis0" pos="0 0 0" range="0 0.82173" />
+							<geom mesh="elbow_right" pos="-0.00474 0.03025 -0.04463" type="mesh" />
+							<body name="lowerarm_right" pos="0.00042 0 -0.09">
+								<inertial diaginertia="0.00699686 0.0067429 0.00144117" mass="1.39833" pos="-0.00776405 -0.00141596 -0.0808734" quat="0.757636 0.000456816 -0.0157489 0.652487" />
+								<joint axis="1 0 0" limited="true" name="elbow_right_axis1" pos="0 0 0" range="-0.82173 0" />
+								<geom mesh="lowerarm_right" pos="-0.00733 -0.00117 -0.11185" type="mesh" />
+								<body name="wrist_right_link1" pos="-0.00616 0 -0.21039">
+									<inertial diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" mass="0.00426506" pos="-1.84967e-07 -6.44416e-08 -1.26282e-08" quat="0.884437 -0.0789859 0.352699 -0.295187" />
+									<joint axis="1 0 0" limited="true" name="wrist_right_axis0" pos="0 0 0" range="-0.5 0.5" />
+									<geom mesh="wrist_right_link1" type="mesh" />
+									<body name="wrist_right_link2" pos="0 0 0">
+										<inertial diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" mass="0.000332748" pos="2.40008e-06 -5.41852e-06 -8.36307e-07" quat="-0.111202 0.737183 -0.247103 0.618979" />
+										<joint axis="0 -1 0" limited="true" name="wrist_right_axis1" pos="0 0 0" range="-0.5 0.5" />
+										<geom mesh="wrist_right_link2" type="mesh" />
+										<body name="hand_right" pos="0 0 0">
+											<inertial diaginertia="0.000266909 0.000217005 9.08298e-05" mass="0.217705" pos="-0.00826361 0.0008102 -0.0579318" quat="0.992988 0.0209019 0.0988729 0.0613437" />
+											<joint axis="0 0 -1" limited="true" name="wrist_right_axis2" pos="0 0 0" range="-0.5 0.5" />
+											<geom mesh="hand_right" pos="-0.00506 0.00106 -0.06163" type="mesh" />
+											<site name="motor32_hand_right" pos="0.02121668620447338 -0.022967981521441874 -0.022533951110777543" />
+											<site name="motor33_hand_right" pos="-0.020779252627431112 -0.02594843575621303 -0.023533951110777787" />
+											<site name="motor34_hand_right" pos="0.023643805377077852 -0.020224622345614507 -0.022533951110777523" />
+											<site name="motor35_hand_right" pos="-0.020779252627445746 0.025938879584498458 -0.023533951110777662" />
+											<site name="motor36_hand_right" pos="0.023643805377067367 0.016715066173925083 -0.022533951110777432" />
+											<site name="motor37_hand_right" pos="0.02121668620446137 0.019458425349751073 -0.022533951110777446" />
+										</body>
+									</body>
+								</body>
+								<site name="motor18_lowerarm_right" pos="-0.009326966045999962 0.04197500662929618 -0.016375302659103128" />
+								<site name="motor19_lowerarm_right" pos="0.015673033954000038 -0.04533236928252406 -0.03578231502032364" />
+								<site name="motor32_lowerarm_right" pos="0.015996045264129184 -0.027088998727685373 -0.18638788928156982" />
+								<site name="motor33_lowerarm_right" pos="-0.028310385633375037 -0.027088998727697954 -0.18638788928156969" />
+								<site name="motor34_lowerarm_right" pos="-0.033293789018983264 -0.024000679144190816 -0.1873878892815697" />
+								<site name="motor35_lowerarm_right" pos="-0.028310385633390382 0.027104544994084084 -0.18638788928156969" />
+								<site name="motor36_lowerarm_right" pos="-0.03329378901899694 0.024016225410574216 -0.1873878892815697" />
+								<site name="motor37_lowerarm_right" pos="0.01623543629571217 0.025592361756362956 -0.18738788928156985" />
+							</body>
+						</body>
+						<site name="motor8_upperarm_right" pos="-0.019117748579518954 -0.02290303910441569 -0.09928368308908495" />
+						<site name="motor9_upperarm_right" pos="0.012582251420481135 -0.01000303910441569 -0.13778368308908504" />
+						<site name="motor10_upperarm_right" pos="0.021582251420481154 0.014996960895584324 -0.13388368308908502" />
+						<site name="motor11_upperarm_right" pos="0.025582251420481143 0.0038969608955843173 -0.12348368308908503" />
+						<site name="motor12_upperarm_right" pos="0.0032822514204811012 -0.01620303910441569 -0.12478368308908498" />
+						<site name="motor13_upperarm_right" pos="-0.029217748579518935 -0.012103039104415679 -0.13898368308908507" />
+						<site name="motor14_upperarm_right" pos="-0.02681774857951895 0.013096960895584342 -0.14568368308908508" />
+						<site name="motor15_upperarm_right" pos="0.011382251420481125 0.026896960895584337 -0.14418368308908502" />
+						<site name="motor18_upperarm_right" pos="-0.014613421263868298 0.05727907969527281 -0.30838467505778533" />
+						<site name="motor19_upperarm_right" pos="0.002863627375889506 -0.05796939017144514 -0.28019808644726" />
+					</body>
+				</body>
+			</body>
+			<body name="head_link1" pos="0 0 0.84075">
+				<geom name="head_ball" type="sphere" pos="0.0 0.0 0.0" zaxis="0 1 0" size=".035 .035" rgba="1 1 0.5 .5" mass="0.3"/>
+				<inertial diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" mass="0.00426506" pos="-1.84967e-07 1.26282e-08 -6.44416e-08" quat="0.681242 0.56954 0.458125 0.0406667" />
+				<joint axis="1 0 0"  name="head_axis0" pos="0 0 0" range="-0.8 0.8" />
+				<geom mesh="head_link1" type="mesh" />
+				<body name="head_link2" pos="0 0 0">
+					<inertial diaginertia="2.67287e-09 2.66627e-09 2.65011e-09" mass="0.000332748" pos="2.40008e-06 8.3631e-07 -5.41852e-06" quat="0.262957 0.612412 0.442635 0.599899" />
+					<joint axis="0 0 -1" limited="true" name="head_axis1" pos="0 0 0" range="-0.56 0.56" />
+					<geom mesh="head_link2" type="mesh" />
+					<body name="head" pos="0 0 0">
+						<inertial diaginertia="0.139882 0.126953 0.109622" mass="13.2108" pos="2.62453e-05 0.00353193 0.168565" quat="0.391628 0.920111 -0.00432853 -0.00220546" />
+						<joint axis="0 1 0" limited="true" name="head_axis2" pos="0 0 0" range="-1 1" />
+						<geom mesh="head" pos="-0.0002 -0.01814 0.1557" type="mesh" />
+						<site name="motor20_head" pos="0.03389389085080183 0.03311201472588639 0.026361277999654015" />
+						<site name="motor21_head" pos="-0.01963550803993573 -0.043468241208375696 0.025291946421725192" />
+						<site name="motor22_head" pos="0.0334862393317494 -0.034055344718223954 0.025423383792022858" />
+						<site name="motor23_head" pos="-0.03256127309684678 0.0342148342294533 0.02637667726550269" />
+						<site name="motor24_head" pos="0.018397159875637357 -0.04409939107632295 0.0252831333343837" />
+						<site name="motor25_head" pos="-0.03438294344894026 -0.03292905965600291 0.025439110720172464" />
+					</body>
+				</body>
+			</body>
+			<body name="shoulder_left_link1" pos="0.21017 0 0.69947">
+                <geom name="shoulder_left_ball" type="sphere" pos="0.0 0.0 0.0" zaxis="0 1 0" size=".025 .025" rgba="1 1 0.5 .5" mass="0.3"/>
+
+				<inertial diaginertia="7.86417e-07 6.69919e-07 6.68396e-07" mass="0.00940856" pos="-0.000936989 -0.000780799 0.000572682" quat="0.919964 -0.0195359 0.228955 0.317592" />
+				<joint axis="0.97437 0 0.22495" limited="true" name="shoulder_left_axis0" pos="0 0 0" range="-1 0.3" />
+				<geom mesh="shoulder_left_link1" type="mesh" />
+				<body name="shoulder_left_link2" pos="0 0 0">
+                    <geom name="shoulder_left_bar" type="cylinder" pos="0.0075 0.0 -0.1" zaxis="0 0 1" size=".015 .08" rgba="1 1 0.5 .5" mass="0.3"/>
+
+                    <site name="shoulder_left_bar_back" pos="0.0 0.02 -0.075" size="0.01" rgba="0.7 0.8 0.95 1.0" group="1"/>
+                    <site name="shoulder_left_bar_front" pos="0.0 -0.02 -0.075" size="0.01" rgba="0.7 0.8 0.95 1.0" group="1"/>
+
+					<inertial diaginertia="1.11432e-08 1.11192e-08 1.09455e-08" mass="0.000782222" pos="-2.77912e-07 -9.17407e-07 2.13575e-05" quat="0.354832 0.541579 0.296234 0.702162" />
+					<joint axis="0 1 0" limited="true" name="shoulder_left_axis1" pos="0 0 0" range="-1.2 0" />
+					<geom mesh="shoulder_left_link2" type="mesh" />
+					<body name="upperarm_left" pos="0 0 0">
+						<inertial diaginertia="0.0194858 0.0151615 0.00597025" mass="2.53629" pos="0.0155271 0.00286341 -0.203999" quat="0.99963 -0.0142052 0.021431 0.00882814" />
+						<joint axis="-0.22495 0 0.97437" limited="true" name="shoulder_left_axis2" pos="0 0 0" range="-0.1 0.1" />
+						<geom mesh="upperarm_left" pos="0.01104 0.00134 -0.18587" type="mesh" />
+						<site name="vp_front_upper_left" pos="0.02505363 -0.05900939 -0.28876869" size="0.01" />
+						<site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01" />
+						<body name="elbow_left" pos="0.00906 0 -0.31208">
+							<inertial diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" mass="0.0993685" pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" />
+							<joint axis="-1 0 0" limited="true" name="elbow_left_axis0" pos="0 0 0" range="0 0.82173" />
+							<geom mesh="elbow_left" pos="-0.00325 0.03025 -0.04463" type="mesh" />
+							<body name="lowerarm_left" pos="-0.0015 0 -0.09">
+								<inertial diaginertia="0.00561403 0.0053067 0.00159342" mass="1.37556" pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" />
+								<joint axis="-1 0 0" name="elbow_left_axis1" pos="0 0 0" range="0 0.82173" />
+								<geom mesh="lowerarm_left" pos="0.00049 -0.00129 -0.09306" type="mesh" />
+								<site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01" />
+								<site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01" />
+								<body name="wrist_left_link1" pos="-0.00073 0 -0.21039">
+									<inertial diaginertia="1.8827e-07 1.86303e-07 1.86258e-07" mass="0.00426485" pos="1.30833e-07 -2.25237e-07 1.2008e-07" quat="0.869654 -0.183361 -0.382988 0.251793" />
+									<joint axis="1 0 0" limited="true" name="wrist_left_axis0" pos="0 0 0" range="-0.5 0.5" />
+									<geom mesh="wrist_left_link1" type="mesh" />
+									<body name="wrist_left_link2" pos="0 0 0">
+										<inertial diaginertia="2.66899e-09 2.66171e-09 2.64405e-09" mass="0.000332384" pos="-6.28727e-07 -8.87226e-07 -3.47146e-06" quat="0.606843 0.39241 0.507701 0.469038" />
+										<joint axis="0 1 0" limited="true" name="wrist_left_axis1" pos="0 0 0" range="-0.5 0.5" />
+										<geom mesh="wrist_left_link2" type="mesh" />
+										<body name="hand_left" pos="0 0 0">
+											<inertial diaginertia="0.000267022 0.000217093 9.08555e-05" mass="0.21774" pos="0.00826358 0.000811807 -0.0579333" quat="0.992984 0.0210746 -0.0988514 -0.0613766" />
+											<joint axis="0 0 1" limited="true" name="wrist_left_axis2" pos="0 0 0" range="-0.5 0.5" />
+											<geom mesh="hand_left" pos="0.00506 0.00106 -0.06163" type="mesh" />
+											<site name="motor26_hand_left" pos="-0.02121668441792217 -0.022967980912831507 -0.022533959694183515" />
+											<site name="motor27_hand_left" pos="-0.020876841228997307 0.02494299509106604 -0.02253395969418341" />
+											<site name="motor28_hand_left" pos="0.021209722453282787 0.019458425958349422 -0.022533959694183654" />
+											<site name="motor29_hand_left" pos="-0.02457456470497956 0.01490097974181045 -0.026138995546460028" />
+											<site name="motor30_hand_left" pos="0.02144505891886904 -0.02121798091283966 -0.026138995546460028" />
+											<site name="motor31_hand_left" pos="-0.02364380359052664 -0.02022462173700414 -0.022533959694183495" />
+										</body>
+									</body>
+								</body>
+								<site name="motor16_lowerarm_left" pos="-0.0015069660459999619 0.04439287843059425 0.001093564902616584" />
+								<site name="motor17_lowerarm_left" pos="0.02349303395400004 -0.03971459085910689 -0.027328933848967077" />
+								<site name="motor26_lowerarm_left" pos="-0.023991039853123824 -0.024740380458242436 -0.18638727916804515" />
+								<site name="motor27_lowerarm_left" pos="-0.0269910398531098 0.024757094224816752 -0.18638727916804515" />
+								<site name="motor28_lowerarm_left" pos="0.021650303968769727 0.025592945506431028 -0.18738727916804504" />
+								<site name="motor29_lowerarm_left" pos="0.02445019237182369 0.02229679358381773 -0.18738727916804504" />
+								<site name="motor30_lowerarm_left" pos="0.022506434829934575 -0.024740380458255634 -0.186387279168045" />
+								<site name="motor31_lowerarm_left" pos="0.028338073864641558 -0.02153979475312617 -0.186387279168045" />
+							</body>
+						</body>
+						<site name="motor0_upperarm_left" pos="0.019112917039296816 -0.02290939017144484 -0.09927950461256974" />
+						<site name="motor1_upperarm_left" pos="-0.012587082960703272 -0.010009390171444841 -0.13777950461256983" />
+						<site name="motor2_upperarm_left" pos="-0.021587082960703288 0.014990609828555174 -0.1338795046125698" />
+						<site name="motor3_upperarm_left" pos="-0.025587082960703278 0.0038906098285551648 -0.12347950461256982" />
+						<site name="motor4_upperarm_left" pos="-0.0032870829607032376 -0.016209390171444838 -0.12477950461256979" />
+						<site name="motor5_upperarm_left" pos="0.0292129170392968 -0.012109390171444828 -0.13897950461256986" />
+						<site name="motor6_upperarm_left" pos="0.026812917039296814 0.01309060982855519 -0.1456795046125699" />
+						<site name="motor7_upperarm_left" pos="-0.011387082960703261 0.02689060982855519 -0.14417950461256984" />
+						<site name="motor16_upperarm_left" pos="0.007576578736131701 0.05723907969527281 -0.31926467505778533" />
+						<site name="motor17_upperarm_left" pos="0.025053627375889505 -0.05900939017144514 -0.2887686853705015" />
+					</body>
+				</body>
+			</body>
+			<site name="motor0_torso_1" pos="0.030560526949292018 0.07051698963370596 0.7385618212432622" />
+			<site name="motor0_torso_2" pos="0.2353832578550099 0.08937292576872675 0.7806539460236518" />
+			<site name="motor0_torso_3" pos="0.24158578564121092 0.03451309370299938 0.7409559929986366" />
+			<site name="motor1_torso_1" pos="0.02214110355289 0.0477560846397047 0.7449961376035741" />
+			<site name="motor1_torso_2" pos="0.20924232518950586 0.07036923835642239 0.7660025301642932" />
+			<site name="motor1_torso_3" pos="0.21964279950079724 0.04617818052363479 0.7444938608388043" />
+			<site name="motor2_torso_1" pos="0.02214110355288993 0.02975608463970469 0.7449961376035741" />
+			<site name="motor2_torso_2" pos="0.2346838472185089 0.03826509112942702 0.7865379660644475" />
+			<site name="motor2_torso_3" pos="0.23899287772127084 0.020642673869099792 0.7520143123279649" />
+			<site name="motor3_torso_1" pos="0.02214110355288997 0.013756084639704671 0.7449961376035743" />
+			<site name="motor3_torso_2" pos="0.25644230876804225 0.06848314227325246 0.7769850495101777" />
+			<site name="motor3_torso_3" pos="0.2561227795690424 0.03693616354561418 0.7331594173295524" />
+			<site name="motor4_torso_1" pos="0.022086394172572105 -0.012225522946627102 0.7449961376035741" />
+			<site name="motor4_torso_2" pos="0.2309840725565017 -0.017629305361574206 0.7771069421152956" />
+			<site name="motor4_torso_3" pos="0.2375653871859742 -0.030409558175866453 0.7462953949799606" />
+			<site name="motor5_torso_1" pos="0.02208639417257212 -0.028225522946627127 0.7449961376035741" />
+			<site name="motor5_torso_2" pos="0.189340387694109 -0.05257831389759718 0.779657499884944" />
+			<site name="motor5_torso_3" pos="0.20768842138189264 -0.06320344649478177 0.7556896835859874" />
+			<site name="motor6_torso_1" pos="0.02208639417257205 -0.05022552294662715 0.7449961376035741" />
+			<site name="motor6_torso_2" pos="0.20288176614930958 -0.030280078279941187 0.7699751985277782" />
+			<site name="motor6_torso_3" pos="0.22198842138189262 -0.040003446494781714 0.7489896835859875" />
+			<site name="motor7_torso_1" pos="0.022086394172572067 -0.06422552294662712 0.7449961376035741" />
+			<site name="motor7_torso_2" pos="0.1672491052175665 -0.07371945090927583 0.773684540661872" />
+			<site name="motor7_torso_3" pos="0.18618842138189257 -0.07090344649478177 0.7505896835859874" />
+			<site name="motor8_torso_1" pos="0.026825634869260397 0.06616703404557775 0.6559961376035741" />
+			<site name="motor8_torso_2" pos="-0.2297090437989551 0.08922371753202817 0.7763263085501669" />
+			<site name="motor8_torso_3" pos="-0.24214547700070635 0.029672520269503358 0.7374532324260772" />
+			<site name="motor9_torso_1" pos="-0.035458439249528656 0.04695554646095015 0.7438262647628102" />
+			<site name="motor9_torso_2" pos="-0.19511693833101829 0.07123149062156868 0.7626879085144639" />
+			<site name="motor9_torso_3" pos="-0.21965520899500296 0.0461781805236348 0.7444938608388043" />
+			<site name="motor10_torso_1" pos="-0.02750936516737643 0.027658562485248183 0.7438894748263123" />
+			<site name="motor10_torso_2" pos="-0.22904672773467966 0.04001389322362747 0.7826753527683257" />
+			<site name="motor10_torso_3" pos="-0.23900528721547667 0.020642673869099813 0.7520143123279649" />
+			<site name="motor11_torso_1" pos="-0.02785952133793201 0.012274390603359466 0.7441665640647858" />
+			<site name="motor11_torso_2" pos="-0.25517966881095455 0.059737957159925616 0.7741945918630027" />
+			<site name="motor11_torso_3" pos="-0.2561351890632482 0.03693616354561416 0.7331594173295525" />
+			<site name="motor12_torso_1" pos="-0.028451575316476452 -0.009965109147223717 0.7431934041356449" />
+			<site name="motor12_torso_2" pos="-0.22600088502685955 -0.015197403147695018 0.7739800670815814" />
+			<site name="motor12_torso_3" pos="-0.23757779668018 -0.030409558175866453 0.7462953949799606" />
+			<site name="motor13_torso_1" pos="-0.02651267048737817 -0.03199086035062769 0.7465408345336497" />
+			<site name="motor13_torso_2" pos="-0.1860095084274607 -0.049426367400348885 0.7771648751077962" />
+			<site name="motor13_torso_3" pos="-0.2077008308760984 -0.06320344649478174 0.7556896835859874" />
+			<site name="motor14_torso_1" pos="-0.027310376846034937 -0.052786990964503976 0.7456423446154922" />
+			<site name="motor14_torso_2" pos="-0.1992135953466507 -0.035836439123779346 0.7710264979818251" />
+			<site name="motor14_torso_3" pos="-0.22200083087609837 -0.04000344649478171 0.7489896835859875" />
+			<site name="motor15_torso_1" pos="-0.026696691068874328 -0.06763835418924224 0.7457601408823569" />
+			<site name="motor15_torso_2" pos="-0.16326021640762 -0.07629405190004922 0.7715724570150092" />
+			<site name="motor15_torso_3" pos="-0.18620083087609832 -0.07090344649478174 0.7505896835859874" />
+			<site name="motor20_torso" pos="0.15209379525289712 0.05479655350521838 0.7446393690009722" />
+			<site name="motor21_torso" pos="0.15209379525289712 0.004796553505218323 0.7394119122758287" />
+			<site name="motor22_torso" pos="0.15209379525289718 -0.05480344649478156 0.745223532583048" />
+			<site name="motor23_torso" pos="-0.14639876889751344 0.0463795157302177 0.7470004983809114" />
+			<site name="motor24_torso" pos="-0.14393580615637255 0.005914639714389603 0.7469543369689654" />
+			<site name="motor25_torso" pos="-0.1415629342386398 -0.05854815595837284 0.7534225447072788" />
+		</body>
+	</worldbody>
+	<tendon>
+		<spatial name="motor0">
+			<site site="motor0_torso_1" />
+			<site site="motor0_torso_2" />
+			<site site="motor0_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back" />
+			<site site="motor0_upperarm_left"/>
+		</spatial>
+		<spatial name="motor1">
+			<site site="motor1_torso_1" />
+			<site site="motor1_torso_2" />
+			<site site="motor1_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back"/>
+			<site site="motor1_upperarm_left" />
+		</spatial>
+		<spatial name="motor2">
+			<site site="motor2_torso_1" />
+			<site site="motor2_torso_2" />
+			<site site="motor2_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back"/>
+			<site site="motor2_upperarm_left" />
+		</spatial>
+		<spatial name="motor3">
+			<site site="motor3_torso_1" />
+			<site site="motor3_torso_2" />
+			<site site="motor3_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back"/>
+			<site site="motor3_upperarm_left" />
+		</spatial>
+		<spatial name="motor4">
+			<site site="motor4_torso_1" />
+			<site site="motor4_torso_2" />
+			<site site="motor4_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front"/>
+			<site site="motor4_upperarm_left" />
+		</spatial>
+		<spatial name="motor5">
+			<site site="motor5_torso_1" />
+			<site site="motor5_torso_2" />
+			<site site="motor5_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front"/>
+			<site site="motor5_upperarm_left" />
+		</spatial>
+		<spatial name="motor6">
+			<site site="motor6_torso_1" />
+			<site site="motor6_torso_2" />
+			<site site="motor6_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front"/>
+			<site site="motor6_upperarm_left" />
+		</spatial>
+		<spatial name="motor7">
+			<site site="motor7_torso_1" />
+			<site site="motor7_torso_2" />
+			<site site="motor7_torso_3" />
+            <!-- <geom geom="shoulder_left_ball"/> -->
+            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front" />
+			<site site="motor7_upperarm_left" />
+		</spatial>
+		<spatial name="motor8">
+			<site site="motor8_torso_1" />
+			<site site="motor8_torso_2" />
+			<site site="motor8_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<site site="motor8_upperarm_right" />
+		</spatial>
+		<spatial name="motor9">
+			<site site="motor9_torso_1" />
+			<site site="motor9_torso_2" />
+			<site site="motor9_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<site site="motor9_upperarm_right" />
+		</spatial>
+		<spatial name="motor10">
+			<site site="motor10_torso_1" />
+			<site site="motor10_torso_2" />
+			<site site="motor10_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<site site="motor10_upperarm_right" />
+		</spatial>
+		<spatial name="motor11">
+			<site site="motor11_torso_1" />
+			<site site="motor11_torso_2" />
+			<site site="motor11_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<site site="motor11_upperarm_right" />
+		</spatial>
+		<spatial name="motor12">
+			<site site="motor12_torso_1" />
+			<site site="motor12_torso_2" />
+			<site site="motor12_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<site site="motor12_upperarm_right" />
+		</spatial>
+		<spatial name="motor13">
+			<site site="motor13_torso_1" />
+			<site site="motor13_torso_2" />
+			<site site="motor13_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<site site="motor13_upperarm_right" />
+		</spatial>
+		<spatial name="motor14">
+			<site site="motor14_torso_1" />
+			<site site="motor14_torso_2" />
+			<site site="motor14_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<site site="motor14_upperarm_right" />
+		</spatial>
+		<spatial name="motor15">
+			<site site="motor15_torso_1" />
+			<site site="motor15_torso_2" />
+			<site site="motor15_torso_3" />
+            <!-- <geom geom="shoulder_right_ball"/> -->
+			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<site site="motor15_upperarm_right" />
+		</spatial>
+		<spatial name="motor16">
+			<site site="motor16_upperarm_left" />
+			<site site="motor16_lowerarm_left" />
+		</spatial>
+		<spatial name="motor17">
+			<site site="motor17_upperarm_left" />
+			<site site="motor17_lowerarm_left" />
+		</spatial>
+		<spatial name="motor18">
+			<site site="motor18_upperarm_right" />
+			<site site="motor18_lowerarm_right" />
+		</spatial>
+		<spatial name="motor19">
+			<site site="motor19_upperarm_right" />
+			<site site="motor19_lowerarm_right" />
+		</spatial>
+		<spatial name="motor20">
+			<site site="motor20_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor20_head" />
+		</spatial>
+		<spatial name="motor21">
+			<site site="motor21_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor21_head" />
+		</spatial>
+		<spatial name="motor22">
+			<site site="motor22_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor22_head" />
+		</spatial>
+		<spatial name="motor23">
+			<site site="motor23_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor23_head" />
+		</spatial>
+		<spatial name="motor24">
+			<site site="motor24_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor24_head" />
+		</spatial>
+		<spatial name="motor25">
+			<site site="motor25_torso" />
+            <geom geom="head_ball"/>
+			<site site="motor25_head" />
+		</spatial>
+		<spatial name="motor26">
+			<site site="motor26_lowerarm_left" />
+			<site site="motor26_hand_left" />
+		</spatial>
+		<spatial name="motor27">
+			<site site="motor27_lowerarm_left" />
+			<site site="motor27_hand_left" />
+		</spatial>
+		<spatial name="motor28">
+			<site site="motor28_lowerarm_left" />
+			<site site="motor28_hand_left" />
+		</spatial>
+		<spatial name="motor29">
+			<site site="motor29_lowerarm_left" />
+			<site site="motor29_hand_left" />
+		</spatial>
+		<spatial name="motor30">
+			<site site="motor30_lowerarm_left" />
+			<site site="motor30_hand_left" />
+		</spatial>
+		<spatial name="motor31">
+			<site site="motor31_lowerarm_left" />
+			<site site="motor31_hand_left" />
+		</spatial>
+		<spatial name="motor32">
+			<site site="motor32_lowerarm_right" />
+			<site site="motor32_hand_right" />
+		</spatial>
+		<spatial name="motor33">
+			<site site="motor33_lowerarm_right" />
+			<site site="motor33_hand_right" />
+		</spatial>
+		<spatial name="motor34">
+			<site site="motor34_lowerarm_right" />
+			<site site="motor34_hand_right" />
+		</spatial>
+		<spatial name="motor35">
+			<site site="motor35_lowerarm_right" />
+			<site site="motor35_hand_right" />
+		</spatial>
+		<spatial name="motor36">
+			<site site="motor36_lowerarm_right" />
+			<site site="motor36_hand_right" />
+		</spatial>
+		<spatial name="motor37">
+			<site site="motor37_lowerarm_right" />
+			<site site="motor37_hand_right" />
+		</spatial>
+	</tendon>
+	<actuator>
+		<!-- <muscle name="motor0" tendon="motor0" />
+		<muscle name="motor1" tendon="motor1" />
+		<muscle name="motor2" tendon="motor2" />
+		<muscle name="motor3" tendon="motor3" />
+		<muscle name="motor4" tendon="motor4" />
+		<muscle name="motor5" tendon="motor5" />
+		<muscle name="motor6" tendon="motor6" />
+		<muscle name="motor7" tendon="motor7" />
+		<muscle name="motor8" tendon="motor8" />
+		<muscle name="motor9" tendon="motor9" />
+		<muscle name="motor10" tendon="motor10" />
+		<muscle name="motor11" tendon="motor11" />
+		<muscle name="motor12" tendon="motor12" />
+		<muscle name="motor13" tendon="motor13" />
+		<muscle name="motor14" tendon="motor14" />
+		<muscle name="motor15" tendon="motor15" />
+		<muscle name="motor16" tendon="motor16" />
+		<muscle name="motor18" tendon="motor18" />
+		<muscle name="motor19" tendon="motor19" />
+		<muscle name="motor20" tendon="motor20" scale="4000" />
+		<muscle name="motor21" tendon="motor21" scale="4000" />
+		<muscle name="motor22" tendon="motor22" scale="4000" />
+		<muscle name="motor23" tendon="motor23" scale="4000" />
+		<muscle name="motor24" tendon="motor24" scale="4000" />
+		<muscle name="motor25" tendon="motor25" scale="4000" />
+		<muscle name="motor26" tendon="motor26" />
+		<muscle name="motor27" tendon="motor27" />
+		<muscle name="motor28" tendon="motor28" />
+		<muscle name="motor29" tendon="motor29" />
+		<muscle name="motor30" tendon="motor30" />
+		<muscle name="motor31" tendon="motor31" />
+		<muscle name="motor32" tendon="motor32" />
+		<muscle name="motor33" tendon="motor33" />
+		<muscle name="motor34" tendon="motor34" />
+		<muscle name="motor35" tendon="motor35" />
+		<muscle name="motor36" tendon="motor36" />
+		<muscle name="motor37" tendon="motor37" /> -->
+
+		<motor name="motor0" tendon="motor0" gear="1000.0"/>
+		<motor name="motor1" tendon="motor1" gear="1000.0"/>
+		<motor name="motor2" tendon="motor2" gear="1000.0"/>
+		<motor name="motor3" tendon="motor3" gear="1000.0"/>
+		<motor name="motor4" tendon="motor4" gear="1000.0"/>
+		<motor name="motor5" tendon="motor5" gear="1000.0"/>
+		<motor name="motor6" tendon="motor6" gear="1000.0"/>
+		<motor name="motor7" tendon="motor7" gear="1000.0"/>
+		<motor name="motor8" tendon="motor8" gear="1000.0"/>
+		<motor name="motor9" tendon="motor9" gear="1000.0"/>
+		<motor name="motor10" tendon="motor10" gear="1000.0"/>
+		<motor name="motor11" tendon="motor11" gear="1000.0"/>
+		<motor name="motor12" tendon="motor12" gear="1000.0"/>
+		<motor name="motor13" tendon="motor13" gear="1000.0"/>
+		<motor name="motor14" tendon="motor14" gear="1000.0"/>
+		<motor name="motor15" tendon="motor15" gear="1000.0"/>
+		<motor name="motor16" tendon="motor16" gear="1000.0"/>
+		<motor name="motor17" tendon="motor17" gear="1000.0"/>
+		<motor name="motor18" tendon="motor18" gear="1000.0"/>
+		<motor name="motor19" tendon="motor19" gear="1000.0"/>
+		<motor name="motor20" tendon="motor20" gear="1000.0"/>
+		<motor name="motor21" tendon="motor21" gear="1000.0"/>
+		<motor name="motor22" tendon="motor22" gear="1000.0"/>
+		<motor name="motor23" tendon="motor23" gear="1000.0"/>
+		<motor name="motor24" tendon="motor24" gear="1000.0"/>
+		<motor name="motor25" tendon="motor25" gear="1000.0"/>
+		<motor name="motor26" tendon="motor26" gear="1000.0"/>
+		<motor name="motor27" tendon="motor27" gear="1000.0"/>
+		<motor name="motor28" tendon="motor28" gear="1000.0"/>
+		<motor name="motor29" tendon="motor29" gear="1000.0"/>
+		<motor name="motor30" tendon="motor30" gear="1000.0"/>
+		<motor name="motor31" tendon="motor31" gear="1000.0"/>
+		<motor name="motor32" tendon="motor32" gear="1000.0"/>
+		<motor name="motor33" tendon="motor33" gear="1000.0"/>
+		<motor name="motor34" tendon="motor34" gear="1000.0"/>
+		<motor name="motor35" tendon="motor35" gear="1000.0"/>
+		<motor name="motor36" tendon="motor36" gear="1000.0"/>
+		<motor name="motor37" tendon="motor37" gear="1000.0"/>
+
+		<!-- <position name="motor0_p" tendon="motor0" kp="1000.0" gear="1.0"/>
+        <velocity name="motor0_v" tendon="motor0" kv="1.0" gear="1.0"/> -->
+		<!-- <position name="motor1_p" tendon="motor1" kp="1000.0" gear="1.0"/>
+        <velocity name="motor1_v" tendon="motor1" kv="1.0" gear="1.0"/> -->
+		<!-- <position name="motor2_p" tendon="motor2" kp="100.0" gear="3.0"/>
+        <velocity name="motor2_v" tendon="motor2" kv="1.0" gear="3.0"/>
+		<position name="motor3_p" tendon="motor3" kp="100.0" gear="3.0"/>
+        <velocity name="motor3_v" tendon="motor3" kv="1.0" gear="3.0"/>
+		<position name="motor4_p" tendon="motor4" kp="100.0" gear="3.0"/>
+        <velocity name="motor4_v" tendon="motor4" kv="1.0" gear="3.0"/>
+		<position name="motor5_p" tendon="motor5" kp="100.0" gear="3.0"/>
+        <velocity name="motor5_v" tendon="motor5" kv="1.0" gear="3.0"/>
+		<position name="motor6_p" tendon="motor6" kp="100.0" gear="3.0"/>
+        <velocity name="motor6_v" tendon="motor6" kv="1.0" gear="3.0"/>
+		<position name="motor7_p" tendon="motor7" kp="100.0" gear="3.0"/>
+        <velocity name="motor7_v" tendon="motor7" kv="1.0" gear="3.0"/> -->
+		<!-- <position name="motor16_p" tendon="motor16" kp="100.0" gear="5.0"/>
+        <velocity name="motor16_v" tendon="motor16" kv="10.0" gear="5.0"/> -->
+		<!-- <position name="motor17_p" tendon="motor17" kp="100.0" gear="5.0"/>
+        <velocity name="motor17_v" tendon="motor17" kv="1.0" gear="5.0"/> -->
+		<!-- <position name="motor18_p" tendon="motor18" kp="100.0" gear="5.0"/>
+        <velocity name="motor18_v" tendon="motor18" kv="10.0" gear="5.0"/> -->
+	</actuator>
+</mujoco>
