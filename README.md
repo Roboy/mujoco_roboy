@@ -1,8 +1,9 @@
 # Setup and start Dockerfile
 
 #### Correct path using BRANCH
-look up the BRANCH in branch.txt.
-make sure the folder containing this file (mujoco_tendon) is in ~/mujoco_tendon_BRANCH
+Look up the BRANCH in branch.txt.
+
+Make sure the folder containing this file (mujoco_tendon) is in ~/Roboy/mujoco_tendon_BRANCH
 
 #### Build a Docker container :
 run `./setup.sh`
