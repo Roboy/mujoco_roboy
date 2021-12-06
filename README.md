@@ -1,14 +1,16 @@
 # Setup and start Dockerfile
 
-#### Create Dockerfile
+#### Correct path using BRANCH
+look up the BRANCH in branch.txt.
+make sure the folder containing this file (mujoco_tendon) is in ~/mujoco_tendon_BRANCH
 
-run `docker build -t mujoco_tendon .` from inside the mujoco_tendon folder.
-
-#### Setup the Dockerfile:
+#### Build a Docker container :
 run `./setup.sh`
+Docker container mujoco_tendon_BRANCH is created and setup 
 
 #### Start the Docker container
 run `./start.sh`
+Docker container mujoco_tendon_BRANCH is run
 
 #### Simulate an XML
 run `./simulate.sh` in the same folder as the XML to be simulated.

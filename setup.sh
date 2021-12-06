@@ -1,5 +1,9 @@
+BRANCH=$(<branch.txt)
+
+docker build -t mujoco_tendon_$BRANCH .
+
 export DISPLAY=$DISPLAY;
-export MUJOCO_PROJECT_PATH=/home/florian/Roboy/mujoco_tendon;
+export MUJOCO_PROJECT_PATH=~/Roboy/mujoco_tendon_$BRANCH/mujoco_tendon;
 
 docker run \
     --env="DISPLAY=${DISPLAY}" \
@@ -10,5 +14,5 @@ docker run \
     -d \
     --network host \
     --privileged \
-    --name mujoco_tendon \
-    -it mujoco_tendon /bin/bash
+    --name mujoco_tendon_$BRANCH \
+    -it mujoco_tendon_$BRANCH /bin/bash
