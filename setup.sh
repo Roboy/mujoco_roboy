@@ -1,3 +1,4 @@
+git rev-parse --abbrev-ref HEAD > branch.txt
 BRANCH=$(<branch.txt)
 
 docker build -t mujoco_tendon_$BRANCH .

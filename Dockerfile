@@ -1,4 +1,4 @@
-FROM ubuntu:16.04 as glvnd
+FROM osrf/ros:noetic-desktop-full
 
 RUN apt-get update -q \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -13,23 +13,15 @@ RUN apt-get update -q \
     net-tools \
     unzip \
     vim \
-    virtualenv \
     wget \
     xpra \
     xserver-xorg-dev \
     x11proto-gl-dev \
     swig \
+    python3-pkgconfig \
+    python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-RUN DEBIAN_FRONTEND=noninteractive add-apt-repository --yes ppa:deadsnakes/ppa && apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes python3.6-dev python3.6 python3-pip
-RUN virtualenv --python=python3.6 env
-
-RUN rm /usr/bin/python
-RUN ln -s /env/bin/python3.6 /usr/bin/python
-RUN ln -s /env/bin/pip3.6 /usr/bin/pip
-RUN ln -s /env/bin/pytest /usr/bin/pytest
 
 RUN curl -o /usr/local/bin/patchelf https://s3-us-west-2.amazonaws.com/openai-sci-artifacts/manual-builds/patchelf_0.9_amd64.elf \
     && chmod +x /usr/local/bin/patchelf
@@ -48,7 +40,15 @@ ENV MUJOCO_GL=egl
 ENV PYOPENGL_PLATFORM=egl
 
 COPY ./requirements.txt /
-RUN pip --no-cache-dir install -r /requirements.txt
+RUN pip3 install --upgrade pip wheel setuptools
+RUN pip3 install -r /requirements.txt
+
+RUN mkdir -p /ros_ws/src
+RUN /bin/bash -c "cd /ros_ws/src && git clone https://github.com/Roboy/roboy_communication.git" 
+RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && cd /ros_ws && catkin_make" 
+
+RUN echo "source /opt/ros/noetic/setup.bash" > /root/.bashrc
+RUN echo "source /ros_ws/devel/setup.bash" > /root/.bashrc
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
 
