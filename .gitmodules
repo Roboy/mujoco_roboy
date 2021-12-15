@@ -1,0 +1,3 @@
+[submodule "roboy3_models"]
+	path = roboy3_models
+	url = https://github.com/Roboy/roboy3_models.git
