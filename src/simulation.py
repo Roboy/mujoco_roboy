@@ -9,7 +9,7 @@ from os.path import dirname
 from sklearn.preprocessing import MinMaxScaler
 
 
-model_xml = "/code/mujoco_models/model_fused.xml"
+model_xml = "/code/mujoco_models/model.xml"
 
 joint_names = [
     ['shoulder_right_axis0', 'shoulder_right_axis1', 'shoulder_right_axis2', 

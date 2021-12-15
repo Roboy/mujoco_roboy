@@ -1,10 +1,13 @@
-# Setup and Running example using docker
+# Setup and start Dockerfile
 
-#### Build docker and create a container:
+#### Correct path using BRANCH
+Look up the BRANCH in branch.txt.
 
 - Build docker: `docker build -t ros-mujoco-tendon .`
 
-- Run `xhost +` on your machine to allow `X11 forwarding`
+#### Start the Docker container
+run `./start.sh`
+Docker container mujoco_tendon_BRANCH is run
 
 ### Running Roboy example
 
