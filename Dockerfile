@@ -51,4 +51,3 @@ RUN echo "source /opt/ros/noetic/setup.bash" > /root/.bashrc
 RUN echo "source /ros_ws/devel/setup.bash" > /root/.bashrc
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
-
