@@ -2,20 +2,25 @@
 
 #### Build docker and create a container:
 
-- Build docker: `docker build -t mujoco-tendon .`
-
-- Create a container: `./run.sh`
+- Build docker: `docker build -t ros-mujoco-tendon .`
 
 - Run `xhost +` on your machine to allow `X11 forwarding`
 
+### Running Roboy example
+
+- Please add your repo path inside either `./run.sh` or `./run_simulation.sh` via `<YOUR_PROJECT_PATH>`
+
+- Make sure that you started `roscore` from your host machine.
+
+- Run the simulation `./scripts/run_simulation.sh`
+
+- Play bag file: `rosbag play ./test_data/shoulder_left.bag -r 2`
+
+- Visualize joint state `python3 ./src/visualize_data.py --body_part shoulder_left`
+
 #### Access the docker terminal:
 
-- Get the docker name: `docker container ls`
+- Create a container `./scripts/run.sh`
 
-- and check for the container name column `docker exec -it CONTAINER_NAME /bin/bash`
+- Access docker container `docker exec -it ros-mujoco-tendon /bin/bash`
 
-- Run the example: `python ant_test.py`
-
-# Running Roboy example
-
-- Inside the docker container `cd ~/.mujoco && ./mujoco200/bin/simulate /src/roboy_model/model.xml`
