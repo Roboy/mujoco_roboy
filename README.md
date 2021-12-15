@@ -1,15 +1,12 @@
-# Setup and start Dockerfile
+# Setup and running example using docker
 
-#### Correct path using BRANCH
-Look up the BRANCH in branch.txt.
+### Build docker
 
 - Build docker: `docker build -t ros-mujoco-tendon .`
 
-#### Start the Docker container
-run `./start.sh`
-Docker container mujoco_tendon_BRANCH is run
+- Run `xhost +` on your machine to allow `X11 forwarding`.
 
-### Running Roboy example
+### Running Roboy3 example
 
 - Please add your repo path inside either `./run.sh` or `./run_simulation.sh` via `<YOUR_PROJECT_PATH>`
 
@@ -21,7 +18,7 @@ Docker container mujoco_tendon_BRANCH is run
 
 - Visualize joint state `python3 ./src/visualize_data.py --body_part shoulder_left`
 
-#### Access the docker terminal:
+### Access the docker terminal:
 
 - Create a container `./scripts/run.sh`
 

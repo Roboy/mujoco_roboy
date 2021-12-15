@@ -1,8 +1,3 @@
-git rev-parse --abbrev-ref HEAD > branch.txt
-BRANCH=$(<branch.txt)
-
-docker build -t mujoco_tendon_$BRANCH .
-
 export DISPLAY=$DISPLAY;
 export MUJOCO_PROJECT_PATH=<YOUR_PROJECT_PATH>;
 
