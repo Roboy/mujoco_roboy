@@ -1,5 +1,10 @@
+MUJOCO_PROJECT_PATH=${PWD%/*}
+
+cd $MUJOCO_PROJECT_PATH/Docker
+docker build . -t mujoco_roboy
+
 export DISPLAY=$DISPLAY;
-export MUJOCO_PROJECT_PATH=<YOUR_PROJECT_PATH>;
+export MUJOCO_PROJECT_PATH;
 
 docker run \
     --env="DISPLAY=${DISPLAY}" \
@@ -10,5 +15,5 @@ docker run \
     -d \
     --network host \
     --privileged \
-    --name ros-mujoco-tendon \
-    -it ros-mujoco-tendon /bin/bash
+    --name mujoco_roboy \
+    -it mujoco_roboy /bin/bash
