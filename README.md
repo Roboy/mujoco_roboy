@@ -2,7 +2,7 @@
 
 ### Build docker
 
-- Build docker: `docker build -t ros-mujoco-tendon .`
+- Build docker: `docker build -t ros-mujoco-tendon .` or `docker build -t ros-mujoco-tendon -f Dockerfile.gpu .`
 
 - Run `xhost +` on your machine to allow `X11 forwarding`.
 
