@@ -20,6 +20,7 @@ RUN apt-get update -q \
     swig \
     python3-pkgconfig \
     python3-pip \
+    python3-tk \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -43,11 +44,11 @@ COPY ./requirements.txt /
 RUN pip3 install --upgrade pip wheel setuptools
 RUN pip3 install -r /requirements.txt
 
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
+
 RUN mkdir -p /ros_ws/src
 RUN /bin/bash -c "cd /ros_ws/src && git clone https://github.com/Roboy/roboy_communication.git" 
 RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && cd /ros_ws && catkin_make" 
 
 RUN echo "source /opt/ros/noetic/setup.bash" > /root/.bashrc
 RUN echo "source /ros_ws/devel/setup.bash" > /root/.bashrc
-
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so

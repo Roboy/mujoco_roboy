@@ -1,0 +1,86 @@
+FROM osrf/ros:noetic-desktop-full
+
+# Nvidia GL workaround from https://github.com/machinekoder/nvidia-opengl-docker
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libxau-dev \
+        libxdmcp-dev \
+        libxcb1-dev \
+        libxext-dev \
+        libx11-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# replace with other Ubuntu version if desired
+# see: https://hub.docker.com/r/nvidia/opengl/
+# e.g. nvidia/opengl:1.1-glvnd-runtime-ubuntu16.04)
+COPY --from=machinekoder/nvidia-opengl-docker:1.1-glvnd-runtime-stretch \
+  /usr/local/lib/x86_64-linux-gnu \
+  /usr/local/lib/x86_64-linux-gnu
+
+# replace with other Ubuntu version if desired
+# see: https://hub.docker.com/r/nvidia/opengl/
+# e.g. nvidia/opengl:1.1-glvnd-runtime-ubuntu16.04
+COPY --from=machinekoder/nvidia-opengl-docker:1.1-glvnd-runtime-stretch \
+  /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json \
+  /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    ldconfig && \
+    echo '/usr/local/$LIB/libGL.so.1' >> /etc/ld.so.preload && \
+    echo '/usr/local/$LIB/libEGL.so.1' >> /etc/ld.so.preload
+
+# nvidia-container-runtime
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+
+RUN apt-get update -q \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    git \
+    libosmesa6-dev \
+    software-properties-common \
+    net-tools \
+    unzip \
+    vim \
+    wget \
+    xpra \
+    swig \
+    python3-pkgconfig \
+    python3-pip \
+    python3-tk \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -o /usr/local/bin/patchelf https://s3-us-west-2.amazonaws.com/openai-sci-artifacts/manual-builds/patchelf_0.9_amd64.elf \
+    && chmod +x /usr/local/bin/patchelf
+
+ENV LANG C.UTF-8
+
+ARG mujoco_roboy_path
+
+RUN mkdir -p /root/.mujoco \
+    && wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip \
+    && unzip mujoco.zip -d /root/.mujoco \
+    && mv /root/.mujoco/mujoco200_linux /root/.mujoco/mujoco200 \
+    && rm mujoco.zip
+COPY $mujoco_roboy_path/mjkey.txt /root/.mujoco/
+ENV LD_LIBRARY_PATH /root/.mujoco/mujoco200/bin:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+ENV MUJOCO_GL=egl
+ENV PYOPENGL_PLATFORM=egl
+
+COPY $mujoco_roboy_path/requirements.gpu.txt /
+RUN pip3 install --upgrade pip wheel setuptools
+RUN pip3 install -r /requirements.gpu.txt
+
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
+
+RUN mkdir -p /ros_ws/src
+RUN /bin/bash -c "cd /ros_ws/src && git clone https://github.com/Roboy/roboy_communication.git" 
+RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && cd /ros_ws && catkin_make" 
+
+RUN echo "source /opt/ros/noetic/setup.bash" > /root/.bashrc
+RUN echo "source /ros_ws/devel/setup.bash" > /root/.bashrc
