@@ -5,9 +5,16 @@ import rospy
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
 from roboy_middleware_msgs.msg import MotorCommand
+from roboy_simulation_msgs.msg import TendonUpdate
 from os.path import dirname
 from sklearn.preprocessing import MinMaxScaler
+import sys
 
+logging = True
+
+
+if logging:
+    logfile = open('logfile.txt', 'w')
 
 model_xml = "/code/mujoco_models/model.xml"
 
@@ -20,6 +27,11 @@ joint_names = [
     'elbow_left_axis0', 'elbow_left_axis1',
     'wrist_left_axis0', 'wrist_left_axis1', 'wrist_left_axis2']
 ]
+
+tendon_names_inner = []
+for i in range(37):
+    tendon_names_inner.append('motor%i' % i)
+tendon_names = [tendon_names_inner]
 
 model = mujoco_py.load_model_from_path(model_xml)
 sim = mujoco_py.MjSim(model)
@@ -65,12 +77,40 @@ def publish_joint_states(publisher, joint_states):
         start_idx += len(body)
 
 
+def publish_tendon_forces(publisher, tendon_control, tendon_forces):
+
+    start_idx = 0
+
+    for tendon in tendon_names:
+            
+        msg = JointState()  #JointState is the wrong message type for this. But there is no direct Forece measurement message type.
+        msg.header = Header()
+        msg.header.stamp = rospy.Time.now()
+
+        msg.name = tendon
+        msg.position = tendon_control[start_idx:start_idx+len(tendon)]
+        msg.velocity = tendon_forces[start_idx:start_idx+len(tendon)]
+        msg.effort = [0] * len(tendon)
+        
+        publisher.publish(msg)
+
+        rospy.loginfo(msg)
+        if logging:
+            print(msg.header.stamp, file=logfile)
+            print(tendon_forces[start_idx:start_idx+len(tendon)], file=logfile)
+
+
+        start_idx += len(tendon)
+
+
+
 if __name__ == '__main__':
 
     topic_root = "/roboy/pinky"
 
     tendon_target_sub = rospy.Subscriber(f"{topic_root}/middleware/MotorCommand", MotorCommand, tendon_target_cb)
     pub = rospy.Publisher(f"{topic_root}/external_joint_states", JointState, queue_size=1)
+    pub2 = rospy.Publisher(f"{topic_root}/tendon_forces", JointState, queue_size=1)
     rospy.init_node("mujoco_roboy")
 
     print("Simulation started!")
@@ -94,6 +134,7 @@ if __name__ == '__main__':
 
         sim.step()
         publish_joint_states(pub, sim.data.qpos)
+        publish_tendon_forces(pub2, sim.data.ctrl, sim.data.actuator_force)
 
         sim_step += 1
         viewer.render()
