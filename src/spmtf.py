@@ -13,7 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 logging = True
 if logging:
-    logfile = open('logfile.txt', 'w')
+    logfile = open('logfile', 'w')
 
 
 

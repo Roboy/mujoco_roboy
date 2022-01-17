@@ -13,11 +13,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 logging = True
 if logging:
-    logfile = open('logfile.txt', 'w')
+    logfile = open('logfile_nolomits', 'w')
 
 
 
-model_xml = "/code/mujoco_models/model.xml"
+model_xml = "/code/mujoco_models/model_physics_nolimits_push.xml"
 
 joint_names = [
     ['shoulder_right_axis0', 'shoulder_right_axis1', 'shoulder_right_axis2', 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         if sim_step >= warmup_step:
             error = setpoint - sim.data.ten_length
             error_int += Ki * error * dt
-            force = Kp * error + Kd * (error - error_prev) / dt + error_int
+            force = (Kp * error + Kd * (error - error_prev) / dt + error_int)*5
 
             ctrl_idx = np.where(setpoint != 0)[0]
             sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
