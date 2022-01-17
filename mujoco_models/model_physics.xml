@@ -10,9 +10,8 @@
 	</default>
 	<size nconmax="100" njmax="500" />
 	<asset>
-		<texture builtin="gradient" height="512" rgb1="0.6 0.6 0.6" rgb2="0 0 0" type="skybox" width="512" />
-		<texture builtin="checker" height="512" mark="cross" markrgb=".8 .8 .8" name="texplane" rgb1=".25 .25 .25" rgb2=".3 .3 .3" type="2d" width="512" />
-		<material name="matplane" reflectance="0.3" texrepeat="1 1" texture="texplane" texuniform="true" />
+		<texture builtin="gradient" height="512" rgb1="0 1 0" rgb2="0 1 0" type="skybox" width="512" />
+
 	</asset>
 	<asset>
 		<mesh file="hand_right.stl" name="hand_right" scale="0.001 0.001 0.001" />
@@ -37,8 +36,8 @@
 		<mesh file="head_link2.stl" name="head_link2" scale="0.001 0.001 0.001" />
 	</asset>
 	<worldbody>
-		<geom material="matplane" name="floor" pos="0 0 -0.5" rgba="0.8 0.6 0.4 1" size="0 0 1" type="plane" />
-		<light diffuse=".8 .8 .8" dir="0 1 -5" directional="true" pos="0 0 5" specular=".2 .2 .2" />
+		
+		<light diffuse=".8 .8 .8" dir="0 2 -5" directional="true" pos="0 3 5" specular=".2 .2 .2" />
 		<body name="torso" pos="0 0 0">
 			<geom mesh="torso" pos="0.00776 0.00282 0.62658" type="mesh" />
 			<body name="shoulder_right_link1" pos="-0.21017 0 0.69947">
