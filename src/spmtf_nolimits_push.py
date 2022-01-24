@@ -10,10 +10,13 @@ from os.path import dirname
 from sklearn.preprocessing import MinMaxScaler
 
 
+P = 300
+I = 10
+D = 100
 
 logging = True
 if logging:
-    logfile = open('logfile_nolomits', 'w')
+    logfile = open('nolomits_P%iI%iD%i' % (P, I, D), 'w')
 
 
 
@@ -41,9 +44,9 @@ viewer = mujoco_py.MjViewer(sim)
 n_motors = 38
 warmup_step = 10
 sim_step = 0
-Kp = 100.0 * np.ones(n_motors)
-Kd = 10.0 * np.ones(n_motors)
-Ki = 0.0 # 10.0
+Kp = float(P)* np.ones(n_motors)
+Kd = float(D) * np.ones(n_motors)
+Ki = float(I) * np.ones(n_motors)
 setpoint = np.zeros(n_motors)
 error_prev = np.zeros(n_motors)
 error_int = np.zeros(n_motors)
@@ -126,7 +129,7 @@ if __name__ == '__main__':
         if sim_step >= warmup_step:
             error = setpoint - sim.data.ten_length
             error_int += Ki * error * dt
-            force = (Kp * error + Kd * (error - error_prev) / dt + error_int)*5
+            force = (Kp * error + Kd * (error - error_prev) / dt + error_int)
 
             ctrl_idx = np.where(setpoint != 0)[0]
             sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
