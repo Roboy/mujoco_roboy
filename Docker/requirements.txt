@@ -1,0 +1,10 @@
+numpy==1.21.4
+scikit-image
+matplotlib
+scipy
+sklearn
+PyOpenGL-accelerate==3.1.5
+PyOpenGL==3.1.5
+pyprind
+gym[all]==0.10.3
+mujoco-py==2.0.2.13
