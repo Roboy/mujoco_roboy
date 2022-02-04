@@ -1,22 +1,52 @@
 FROM osrf/ros:noetic-desktop-full
 
+# Nvidia GL workaround from https://github.com/machinekoder/nvidia-opengl-docker
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libxau-dev \
+        libxdmcp-dev \
+        libxcb1-dev \
+        libxext-dev \
+        libx11-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# replace with other Ubuntu version if desired
+# see: https://hub.docker.com/r/nvidia/opengl/
+# e.g. nvidia/opengl:1.1-glvnd-runtime-ubuntu16.04)
+COPY --from=machinekoder/nvidia-opengl-docker:1.1-glvnd-runtime-stretch \
+  /usr/local/lib/x86_64-linux-gnu \
+  /usr/local/lib/x86_64-linux-gnu
+
+# replace with other Ubuntu version if desired
+# see: https://hub.docker.com/r/nvidia/opengl/
+# e.g. nvidia/opengl:1.1-glvnd-runtime-ubuntu16.04
+COPY --from=machinekoder/nvidia-opengl-docker:1.1-glvnd-runtime-stretch \
+  /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json \
+  /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    ldconfig && \
+    echo '/usr/local/$LIB/libGL.so.1' >> /etc/ld.so.preload && \
+    echo '/usr/local/$LIB/libEGL.so.1' >> /etc/ld.so.preload
+
+# nvidia-container-runtime
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+
 RUN apt-get update -q \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
-    libgl1-mesa-dev \
-    libgl1-mesa-glx \
-    libglew-dev \
     libosmesa6-dev \
-    libglfw3 \
     software-properties-common \
     net-tools \
     unzip \
     vim \
     wget \
     xpra \
-    xserver-xorg-dev \
-    x11proto-gl-dev \
     swig \
     python3-pkgconfig \
     python3-pip \
@@ -40,9 +70,9 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
 ENV MUJOCO_GL=egl
 ENV PYOPENGL_PLATFORM=egl
 
-COPY ./requirements.txt /
+COPY ./requirements.gpu.txt /
 RUN pip3 install --upgrade pip wheel setuptools
-RUN pip3 install -r /requirements.txt
+RUN pip3 install -r /requirements.gpu.txt
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
 

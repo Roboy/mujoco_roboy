@@ -7,19 +7,14 @@ from std_msgs.msg import Header
 from roboy_middleware_msgs.msg import MotorCommand
 from os.path import dirname
 from sklearn.preprocessing import MinMaxScaler
+import threading
 
 
 model_xml = "/code/mujoco_models/model.xml"
 
-joint_names = [
-    ['shoulder_right_axis0', 'shoulder_right_axis1', 'shoulder_right_axis2', 
-    'elbow_right_axis0', 'elbow_right_axis1', 
-    'wrist_right_axis0', 'wrist_right_axis1', 'wrist_right_axis2'],
-    ['head_axis0', 'head_axis1', 'head_axis2'], 
-    ['shoulder_left_axis0','shoulder_left_axis1','shoulder_left_axis2',
-    'elbow_left_axis0', 'elbow_left_axis1',
-    'wrist_left_axis0', 'wrist_left_axis1', 'wrist_left_axis2']
-]
+joint_names = None 
+end_effectors = None
+joint_ids = None
 
 model = mujoco_py.load_model_from_path(model_xml)
 sim = mujoco_py.MjSim(model)
@@ -28,16 +23,19 @@ viewer = mujoco_py.MjViewer(sim)
 n_motors = 38
 warmup_step = 10
 sim_step = 0
-Kp = 100.0 * np.ones(n_motors)
-Kd = 10.0 * np.ones(n_motors)
+Kp = 40.0 * np.ones(n_motors) # 30
+Kd = 10.0 * np.ones(n_motors) # 5
 Ki = 0.0 # 10.0
 setpoint = np.zeros(n_motors)
-error_prev = np.zeros(n_motors)
-error_int = np.zeros(n_motors)
 
 # Head
-Kp[np.arange(20, 25)] = 500.0
+Kp[np.arange(20, 25)] = 180.0
 Kd[np.arange(20, 25)] = 10.0
+
+freq = 300
+rate = None
+dt = 1 / freq
+publisher = None
 
 def tendon_target_cb(data):
 
@@ -50,19 +48,37 @@ def publish_joint_states(publisher, joint_states):
 
     start_idx = 0
 
-    for body in joint_names:
+    for id in joint_ids:
             
         msg = JointState()
         msg.header = Header()
         msg.header.stamp = rospy.Time.now()
 
-        msg.name = body
-        msg.position = joint_states[start_idx:start_idx+len(body)]
-        msg.velocity = [0] * len(body)
-        msg.effort = [0] * len(body)
+        msg.name = np.array(joint_names)[id]
+        msg.position = joint_states[id]
+        msg.velocity = [0] * len(id)
+        msg.effort = [0] * len(id)
         
         publisher.publish(msg)
-        start_idx += len(body)
+
+def control_runner():
+    global sim
+
+    error_prev = np.zeros(n_motors)
+    error_int = np.zeros(n_motors)
+
+    while not rospy.is_shutdown():
+        error = setpoint - sim.data.ten_length
+        error_int += Ki * error * dt
+        force = Kp * error + Kd * (error - error_prev) / dt + error_int
+
+        ctrl_idx = np.where(setpoint != 0)[0]
+        sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
+
+        error_prev = error
+
+        publish_joint_states(publisher, sim.data.qpos)
+        rate.sleep()
 
 
 if __name__ == '__main__':
@@ -70,32 +86,31 @@ if __name__ == '__main__':
     topic_root = "/roboy/pinky"
 
     tendon_target_sub = rospy.Subscriber(f"{topic_root}/middleware/MotorCommand", MotorCommand, tendon_target_cb)
-    pub = rospy.Publisher(f"{topic_root}/external_joint_states", JointState, queue_size=1)
+    publisher = rospy.Publisher(f"{topic_root}/external_joint_states", JointState, queue_size=1)
     rospy.init_node("mujoco_roboy")
 
-    print("Simulation started!")
+    joint_names = rospy.get_param("/joint_names")
+    end_effectors = rospy.get_param("/endeffectors")
 
-    freq = 300
+    joint_ids = []
+    for ee in end_effectors:
+        name = rospy.get_param(f'{ee}/joints')
+        joint_ids.append([joint_names.index(n) for n in name])
+
     rate = rospy.Rate(freq)
-    dt = 1 / freq
 
+    # Create control thread
+    control_thread = threading.Thread(target=control_runner)
+    for i in range(warmup_step):
+        sim.step()
+    control_thread.start()
+
+    # Now start the simulation
+    print("Simulation started!")
+    sim_rate = rospy.Rate(1000)
     sim_step = 0
     while not rospy.is_shutdown():
-
-        if sim_step >= warmup_step:
-            error = setpoint - sim.data.ten_length
-            error_int += Ki * error * dt
-            force = Kp * error + Kd * (error - error_prev) / dt + error_int
-
-            ctrl_idx = np.where(setpoint != 0)[0]
-            sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
-
-            error_prev = error
-
         sim.step()
-        publish_joint_states(pub, sim.data.qpos)
-
-        sim_step += 1
         viewer.render()
-
-        rate.sleep()
+        sim_step += 1
+        sim_rate.sleep()
