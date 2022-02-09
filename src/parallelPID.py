@@ -13,7 +13,7 @@ import threading
 import time
 
 
-model_xml = "/code/mujoco_models/model_physics.xml"
+model_xml = "/code/mujoco_models/model_physics_rolljoint.xml"
 bagfile = 'shoulder_left.bag'
 baglocation = '/code/test_data'
 add_name = '_findP'
@@ -21,7 +21,6 @@ add_name = '_findP'
 playbag = True
 startBagAt = 80
 playBagDuration = 10
-
 
 logging = True
 sp_length_logging=True
@@ -33,6 +32,11 @@ D = int(sys.argv[3])
 #P = 12500
 #I = 250
 #D = 250
+
+sim_freq = 100
+control_freq = 300
+renderEveryN = 1
+
 
 bagname = bagfile[:bagfile.find('.bag')]
 
@@ -58,9 +62,6 @@ n_motors = 38
 warmup_step = 10
 bagstart_step = 100
 sim_step = 0
-
-sim_freq = 100
-control_freq = 300
 
 
 joint_names = [
@@ -233,12 +234,22 @@ if __name__ == '__main__':
     sim_step = 0
     
     
+    starttime = 0
+    endtime = 0
+    maxtimedif = 0
 
     while not rospy.is_shutdown():
-        sim.step()
+        if (sim_step > warmup_step):
+            timedif = endtime-starttime
+            if (timedif > maxtimedif):
+                maxtimedif = timedif
+                maxstep = sim_step
 
-        #if sim_step%10 == 0:
-        viewer.render()
+        starttime = time.time_ns()
+
+        sim.step()
+        if (sim_step%renderEveryN==0):
+            viewer.render()
         
 
         if (sim_step == bagstart_step and playbag):
@@ -247,12 +258,16 @@ if __name__ == '__main__':
         if sim_step >= stop_step:
             kill(player_proc.pid)
             stop_threads = True
-            os._exit(1)
 
+            print("\nMaximal Simulation timestep: %fms At Simulation Step: %i \nLast Simulation timestep: %fms \nMust not be larger than: %fms" %(maxtimedif/10e6, maxstep, timedif/10e6, 1000/sim_freq))
+            os._exit(1)
 
         sim_step += 1
 
+        endtime = time.time_ns()
         sim_rate.sleep()
+
+        
         
         
         
