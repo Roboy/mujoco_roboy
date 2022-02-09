@@ -264,6 +264,10 @@
 			<site name="motor25_torso" pos="-0.1415629342386398 -0.05854815595837284 0.7534225447072788" />
 		</body>
 	</worldbody>
+	<equality>
+		<joint name='elbow_left_rolling_joint' joint1='elbow_left_axis0' joint2='elbow_left_axis1' polycoef='0 1 0 0 0' />
+		<joint name='elbow_right_rolling_joint' joint1='elbow_right_axis0' joint2='elbow_right_axis1' polycoef='0 -1 0 0 0' />
+	</equality>
 	<tendon>
 		<spatial name="motor0">
 			<site site="motor0_torso_1" />
@@ -547,12 +551,12 @@
 		<motor name="motor17" tendon="motor17"/>
 		<motor name="motor18" tendon="motor18"/>
 		<motor name="motor19" tendon="motor19"/>
-		<motor name="motor20" tendon="motor20" gear="10"/>
 		<motor name="motor21" tendon="motor21" gear="10"/>
 		<motor name="motor22" tendon="motor22" gear="10"/>
 		<motor name="motor23" tendon="motor23" gear="10"/>
 		<motor name="motor24" tendon="motor24" gear="10"/>
 		<motor name="motor25" tendon="motor25" gear="10"/>
+		<motor name="motor20" tendon="motor20" gear="10"/>
 		<motor name="motor26" tendon="motor26"/>
 		<motor name="motor27" tendon="motor27"/>
 		<motor name="motor28" tendon="motor28"/>

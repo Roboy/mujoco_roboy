@@ -14,23 +14,29 @@ import psutil
 import sys
 
 
-bagfile = 'left_elbow_ransteps_A.bag'
+bagfile = 'left_elbow_stepUpDown_B.bag'
 baglocation = '/code/test_data'
+add_name = '_findP'
 
 playbag = True
-startBagAt = 40
+startBagAt = 60
+stop_step = 10000
 
 P = int(sys.argv[1])
 I = int(sys.argv[2])
 D = int(sys.argv[3])
+#P = 12500
+#I = 250
+#D = 250
 
 bagname = bagfile[:bagfile.find('.bag')]
 
 
 logging = True
 sp_length_logging=True
+controlidfile_logging=False
 
-logdir = os.getcwd()+'/logfiles/%s' % bagname
+logdir = os.getcwd()+'/logfiles/%s' % bagname + add_name
 currlog = os.path.join(logdir, 'P%iI%iD%i' % (P, I, D))
 if not os.path.exists(currlog):
     os.makedirs(currlog)
@@ -41,6 +47,8 @@ if logging:
 if sp_length_logging:
     logfile_setpoints = open('%s/setpoints' % currlog, 'w')
     logfile_lengths = open('%s/lengths' % currlog, 'w')
+if controlidfile_logging:
+    controlidfile = open('%s/controlid' % currlog, 'w')
 
 
 
@@ -69,7 +77,7 @@ n_motors = 38
 
 warmup_step = 10
 bagstart_step = 100
-stop_step = 6000
+
 
 sim_step = 0
 
@@ -91,7 +99,13 @@ def tendon_target_cb(data):
     global setpoint
 
     control_id = list(data.global_id)
+
     setpoint[control_id] = -np.array(data.setpoint)
+
+
+    if controlidfile_logging:
+        print(control_id, file=controlidfile)
+        print(setpoint, file=controlidfile)
 
 def publish_joint_states(publisher, joint_states):
 
@@ -174,12 +188,20 @@ if __name__ == '__main__':
         if sim_step >= stop_step:
             kill(player_proc.pid)
             exit()
+
         if sim_step >= warmup_step:
+
+            
+
+
             error = setpoint - sim.data.ten_length
             error_int += Ki * error * dt
             force = (Kp * error + Kd * (error - error_prev) / dt + error_int)
 
+            
+
             ctrl_idx = np.where(setpoint != 0)[0]
+
             sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
 
             error_prev = error
