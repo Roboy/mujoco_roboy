@@ -1,3 +1,4 @@
+from tracemalloc import start
 import numpy as np
 import mujoco_py
 import rospy
@@ -16,11 +17,11 @@ import time
 model_xml = "/code/mujoco_models/model_physics_rolljoint.xml"
 bagfile = 'shoulder_left.bag'
 baglocation = '/code/test_data'
-add_name = '_findP'
+add_name = 'Bi+Tri'
 
 playbag = True
-startBagAt = 80
-playBagDuration = 10
+startBagAt = 60
+playBagDuration = 15
 
 logging = True
 sp_length_logging=True
@@ -40,7 +41,7 @@ renderEveryN = 1
 
 bagname = bagfile[:bagfile.find('.bag')]
 
-logdir = os.getcwd()+'/logfiles/%s' % bagname + add_name
+logdir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i' % (bagname, add_name, startBagAt, playBagDuration)
 currlog = os.path.join(logdir, 'P%iI%iD%i' % (P, I, D))
 if not os.path.exists(currlog):
     os.makedirs(currlog)
@@ -238,6 +239,8 @@ if __name__ == '__main__':
     endtime = 0
     maxtimedif = 0
 
+
+
     while not rospy.is_shutdown():
         if (sim_step > warmup_step):
             timedif = endtime-starttime
@@ -258,8 +261,7 @@ if __name__ == '__main__':
         if sim_step >= stop_step:
             kill(player_proc.pid)
             stop_threads = True
-
-            print("\nMaximal Simulation timestep: %fms At Simulation Step: %i \nLast Simulation timestep: %fms \nMust not be larger than: %fms" %(maxtimedif/10e6, maxstep, timedif/10e6, 1000/sim_freq))
+            print("\nMaximal Simulation timestep: %.2fms At Simulation Step: %i \nLast Simulation timestep: %.2fms \nMust not be larger than: %.2fms" %(maxtimedif/10e6, maxstep, timedif/10e6, 1000/sim_freq))
             os._exit(1)
 
         sim_step += 1
