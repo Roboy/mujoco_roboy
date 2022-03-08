@@ -1,0 +1,8 @@
+A)
+every 5 seconds random value between 0 and 90
+biceps and triceps
+total length 100s
+
+B) 
+assuming 0deg is when arm is fully extended and 90deg when fully bent
+0 [30s] 15  [30s] 30  [30s] 45  [30s] 60  [30s] 75  [30s] 45  [30s] 15
