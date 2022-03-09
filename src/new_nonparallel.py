@@ -182,59 +182,106 @@ if __name__ == '__main__':
 
     stop_step = playBagDuration*freq + bagstart_step    
     sim_step = 0
-    starttime = 0
-    endtime = 0
-    maxtimedif = 0
 
+
+
+    #XXXtime is time AFTER action XXX
+    starttime = 0
+    controltime = 0
+    logtime = 0
+    simulationtime = 0
+    rendertime = 0
+
+    maxcontroldur = 0
+    maxlogdur = 0
+    maxsimulationdur = 0
+    maxrenderdur = 0
+    maxtotaldur = 0
+
+    while not rospy.is_shutdown() and (sim_step <= warmup_step):
+        sim.step()
+        sim_step += 1
+        viewer.render()
 
     while not rospy.is_shutdown() and sim_step<=stop_step:
 
         if (sim_step == bagstart_step and playbag):
+            bagstart_time = time.time_ns()
+            bagend_time = time.time_ns() +  int(1e9*playBagDuration)
             player_proc = subprocess.Popen(['rosbag', 'play', bagfile, '-s %i' %startBagAt, '-u %i' %playBagDuration], cwd=baglocation)
-
-
 
         oldstarttime = starttime
         starttime = time.time_ns()
 
-        
+            
+    #TIME DURATIONS
+        currcontroldur = controltime - oldstarttime 
+        currlogdur = logtime - controltime
+        currsimulationdur = simulationtime - logtime
+        currrenderdur = rendertime - simulationtime
+        currtotaldur = rendertime - oldstarttime
 
-        if (sim_step > warmup_step):
-            timedif = endtime-oldstarttime            
-            if (timedif > maxtimedif):
-                maxtimedif = timedif
-                maxstep = sim_step
-
-
-            error = setpoint - sim.data.ten_length
-            error_int += Ki * error * dt
-            force = Kp * error + Kd * (error - error_prev) / dt + error_int
-
-            ctrl_idx = np.where(setpoint != 0)[0]
-            sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
-
-            error_prev = error
-
-
-            if (logging & (sim_step%logEveryN == 0)):
-                log(logfile)
-
+            
+        if (currcontroldur > maxcontroldur):
+            maxcontroldur = currcontroldur
+        if (currlogdur > maxlogdur):
+            maxlogdur = currlogdur
+        if (currsimulationdur > maxsimulationdur):
+            maxsimulationdur = currsimulationdur
+        if (currrenderdur > maxrenderdur):
+            maxrenderdur = currrenderdur
+        if (currtotaldur > maxtotaldur):
+            maxtotaldur = currtotaldur
+            maxtotaldur_step = sim_step
 
 
+        #controller calculation
+        error = setpoint - sim.data.ten_length
+        error_int += Ki * error * dt
+        force = Kp * error + Kd * (error - error_prev) / dt + error_int
 
+        ctrl_idx = np.where(setpoint != 0)[0]
+        sim.data.ctrl[ctrl_idx] = force[ctrl_idx]
+
+        error_prev = error
+
+        controltime = time.time_ns()
+
+        #logging
+        if (logging & (sim_step%logEveryN == 0)):
+            log(logfile)
+
+
+        logtime = time.time_ns()
+
+
+        #simulation step
         sim.step()
+        sim_step += 1
+
+        simulationtime = time.time_ns()
+
+
+        #render
         if (sim_step%renderEveryN==0):
             viewer.render()
 
-        sim_step += 1
+        rendertime = time.time_ns()
 
-        endtime = time.time_ns()
+
         rate.sleep()
 
-
+    loopendtime = time.time_ns()
 
     kill(player_proc.pid)
     stop_threads = True
-    print("\nMaximal timestep: %.2fms At Simulation Step: %i \nMust not be larger than: %.2fms\n" %(maxtimedif/10e6, maxstep, 1000/freq))
-    print("Current Frequency: %i\nPotential Maximal Frequency: %i \nRecommended Frequency with with 10 perc. safety margin: %i" %(freq, 10e9/maxtimedif, 9e9/maxtimedif))
+    print("\nReal Time Duraion: %.2fs Loop Duarion %.2fs" %(playBagDuration, (loopendtime-bagstart_time)*1e-9))
+    print("\nMaximal Time Durations")
+    print("Total %.2fms at step %i" % (maxtotaldur*1e-6, maxtotaldur_step))
+    print("Control %.2fms" % (maxcontroldur*1e-6))
+    print("Log %.2fms" % (maxlogdur*1e-6))
+    print("Simulation %.2fms" % (maxsimulationdur*1e-6))
+    print("Render %.2fms" % (maxrenderdur*1e-6))
+    print("\nTotal Duration must not be larger than: %.2fms\n" %(1000/freq))
+    print("Current Frequency: %i\nPotential Maximal Frequency: %i \nRecommended Frequency with with 10 perc. safety margin: %i" %(freq, 1e9/maxtotaldur, 9e8/maxtotaldur))
     os._exit(1)
