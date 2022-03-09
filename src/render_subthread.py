@@ -1,3 +1,4 @@
+from ntpath import join
 import numpy as np
 import mujoco_py
 import rospy
@@ -10,6 +11,7 @@ import psutil
 import sys
 import time
 import threading
+import xml.etree.ElementTree as ET
 
 
 # Information about code structure
@@ -22,11 +24,11 @@ import threading
 # As long as the render rate is low enough (and there is enough power remaining for the subthread) the simulation can run at a very high rate.
 
 
-
-modelXML = "/code/mujoco_models/model_physics_rolljoint.xml"
-timestepFromXML = 0.01
+modelPath = "/code/mujoco_models/"
+modelXML = modelPath + "model_physics_rolljoint.xml"
+timestepFromXML = 0.005
 # Use the same values as in the model.xml above
-renderFreq=60
+renderFreq=30
 # Specify render Frequency s.t. There are enough resources remaining for the subthread
 
 bagFile = 'fixed_sp_allaxis.bag'
@@ -44,6 +46,12 @@ logEveryN = 2
 P = int(sys.argv[1])
 I = int(sys.argv[2])
 D = int(sys.argv[3])
+joint_control = sys.argv[3]
+# P = 7500
+# I = 250
+# D = 250
+joint_control = "elbow_left"
+
 
 nMotors = 38
 simStep = 0
@@ -66,8 +74,20 @@ if logging:
     logvariable = ''
 
 
+tree = ET.parse(modelXML)
+root = tree.getroot()
+joint_found = [element for element in root.iter() if element.tag == "joint"]
+for joint in joint_found:
+    if "range" in joint.attrib and joint_control not in joint.attrib["name"]:
+        joint.set("range", "-0.001 0.0")
 
-model = mujoco_py.load_model_from_path(modelXML)
+xmlstr = ET.tostring(root, encoding='unicode', method='xml')
+
+with open(modelPath + "tmp.xml", "w") as f:
+    f.write(xmlstr)
+
+
+model = mujoco_py.load_model_from_path(modelPath + "tmp.xml")
 sim = mujoco_py.MjSim(model)
 viewer = mujoco_py.MjViewer(sim)
 
@@ -87,10 +107,6 @@ tendonNamesInner = []
 for i in range(37):
     tendonNamesInner.append('motor%i' % i)
 tendonNames = [tendonNamesInner]
-
-model = mujoco_py.load_model_from_path(modelXML)
-sim = mujoco_py.MjSim(model)
-viewer = mujoco_py.MjViewer(sim)
 
 
 
