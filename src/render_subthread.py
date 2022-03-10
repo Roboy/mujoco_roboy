@@ -25,37 +25,46 @@ import xml.etree.ElementTree as ET
 
 modelPath = "/code/mujoco_models/"
 modelXML = modelPath + "model_physics_rolljoint.xml"
-timestepFromXML = 0.005
+
 # Use the same values as in the model.xml above
-renderFreq=30
-# Specify render Frequency s.t. There are enough resources remaining for the subthread
+
 
 bagFile = 'fixed_sp_allaxis.bag'
 bagLocation = '/code/test_data'
-addName = 'TS_Test_parallel'
+addName = 'tsEdit'
 
 playBag = True
 startBagAt = 60
-playBagDuration = 60
+playBagDuration = 0.1
 
+
+# Set Simulation Frequency. The higher, the better, as long as there is no lag.
+simFreq = 500
+
+# Enable Logging and set Logging Frequency
 logging = True
-logEveryN = 2
+loggingFreq = 30
 
+
+# Specify render Frequency s.t. There are enough resources remaining for the subthread. Disable Rendering for maximal Simulation Frequency & Accuracy
+render = False
+renderFreq=60
 
 P = int(sys.argv[1])
 I = int(sys.argv[2])
 D = int(sys.argv[3])
-joint_control = sys.argv[3]
+#ControlOnlyJoint = sys.argv[4]
 # P = 7500
 # I = 250
 # D = 250
-joint_control = "elbow_left"
+
+# Leave empty to enable every joint. Set to control only the specified joint
+ControlOnlyJoint = "elbow_right"
 
 
 nMotors = 38
 simStep = 0
-dt = timestepFromXML
-freq = 1/dt
+dt = 1/simFreq
 
 stopThreads = False
 startAll = False
@@ -63,7 +72,7 @@ startAll = False
 
 bagName = bagFile[:bagFile.find('.bag')]
 
-logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startBagAt, playBagDuration, freq)
+logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startBagAt, playBagDuration, simFreq)
 currLog = os.path.join(logDir, 'P%iI%iD%i' % (P, I, D))
 if not os.path.exists(currLog):
     os.makedirs(currLog)
@@ -71,22 +80,30 @@ if not os.path.exists(currLog):
 if logging:
     global logvariable
     logvariable = ''
+    logEveryN = int(simFreq/loggingFreq)
 
 
-tree = ET.parse(modelXML)
-root = tree.getroot()
-joint_found = [element for element in root.iter() if element.tag == "joint"]
-for joint in joint_found:
-    if "range" in joint.attrib and joint_control not in joint.attrib["name"]:
-        joint.set("range", "-0.001 0.0")
+if ControlOnlyJoint:
+    tree = ET.parse(modelXML)
+    root = tree.getroot()
+    root.find("option").set("timestep", str(1/simFreq))
+    joint_found = [element for element in root.iter() if element.tag == "joint"]
+    for joint in joint_found:
+        if "range" in joint.attrib and ControlOnlyJoint not in joint.attrib["name"]:
+            joint.set("range", "-0.001 0.0")
 
-xmlstr = ET.tostring(root, encoding='unicode', method='xml')
+    xmlstr = ET.tostring(root, encoding='unicode', method='xml')
 
-with open(modelPath + "tmp.xml", "w") as f:
-    f.write(xmlstr)
+    with open(modelPath + "tmp.xml", "w") as f:
+        f.write(xmlstr)
+    model = mujoco_py.load_model_from_path(modelPath + "tmp.xml")
+else:
+    tree = ET.parse(modelXML)
+    root = tree.getroot()
+    root.find("option").set("timestep", str(1/simFreq))
+    model = mujoco_py.load_model_from_path(modelXML)
 
 
-model = mujoco_py.load_model_from_path(modelPath + "tmp.xml")
 sim = mujoco_py.MjSim(model)
 viewer = mujoco_py.MjViewer(sim)
 
@@ -184,7 +201,7 @@ def publishTendonForces(publisher, tendon_control, tendon_forces):
 
 def allButRender():
     simStep = 0
-    stopStep = playBagDuration*freq
+    stopStep = playBagDuration*simFreq
 
     errorPrev = np.zeros(nMotors)
     errorInt = np.zeros(nMotors)
@@ -266,6 +283,29 @@ def kill(proc_pid):
         proc.kill()
     process.kill()
 
+def printHeader():
+    print('Bagfile: %s' %bagName)
+    print('P=%i I=%i D=%i'%(P,I,D))
+    print('Bagfile played from %i for %is.'%(startBagAt,playBagDuration))
+    if ControlOnlyJoint:
+        print('Only joint %s was enabled.' %ControlOnlyJoint)
+    print("")
+    print("Real Time Duraion:      %.3fs" %playBagDuration)
+    print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-startTime)*1e-9) )
+    if (AllButRenderEndTime-startTime)*9.9e-10 > playBagDuration:
+        print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.\n")
+
+    print('Simulation Frequency:   %i, equivalent to a Timestep of %.3fs,' % (simFreq, dt))
+    print('Logging Frequency:      %i' % (loggingFreq))
+    print('Render Frequency:       %i\n' % (renderFreq))
+
+    print("Maximum Time Durations")
+    print("Total:                  %.2fms at step %i (must not be larger than %.2fms)" % (maxTotalDur*1e-6, maxTotalDurStep, 1000/simFreq))
+    print("Control:                %.2fms" % (maxControlDur*1e-6))
+    print("Log:                    %.2fms" % (maxLogDur*1e-6))
+    print("Simulation:             %.2fms\n" % (maxSimDur*1e-6))
+
+
 
 if __name__ == '__main__':
 
@@ -283,14 +323,15 @@ if __name__ == '__main__':
     print("Simulation started!")
 
     # Rates can only be created after rospy node init
-    rate = rospy.Rate(freq)
+    rate = rospy.Rate(simFreq)
     renderRate = rospy.Rate(renderFreq)
 
 
     # calculate first simulation step
     sim.step()
     # and load the GUI
-    viewer.render()
+    if render:
+        viewer.render()
     # to not slow down first few steps
 
     allButRender_thread.start()
@@ -307,7 +348,8 @@ if __name__ == '__main__':
 
     # Render for the expected time
     while time.time_ns() < bagEndTime:
-        viewer.render()
+        if render:
+            viewer.render()
         renderRate.sleep()
     
     # ensure everything finished
@@ -322,36 +364,18 @@ if __name__ == '__main__':
         originalStdout = sys.stdout
         sys.stdout = logfile
         # Create the Header
-        print('Bagfile: %s' %bagName)
-        print('P=%i I=%i D=%i'%(P,I,D))
-        print('Bagfile played from %i for %is.'%(startBagAt,playBagDuration))
-        print('Timestep from XML:%.3fs, equivalent to a frequency of %i' % (timestepFromXML,freq))
-        print('')
-        print("Real Time Duraion:      %.3fs \nDuarion for Simulation: %.3fs" %(playBagDuration, (AllButRenderEndTime-startTime)*1e-9))
-        if (AllButRenderEndTime-startTime)*9.9e-10 > playBagDuration:
-            print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.")
-        print("\nMaximum Time Durations")
-        print("Total:      %.2fms at step %i" % (maxTotalDur*1e-6, maxTotalDurStep))
-        print("Control:    %.2fms" % (maxControlDur*1e-6))
-        print("Log:        %.2fms" % (maxLogDur*1e-6))
-        print("Simulation: %.2fms" % (maxSimDur*1e-6))
+        printHeader()
         # Write the logvariable
         print('\nRECORDING START')
         print(logvariable)
         sys.stdout = originalStdout
 
 
-    print("\n\nDONE!\nReal Time Duraion:      %.3fs \nDuarion for Simulation: %.3fs" %(playBagDuration, (AllButRenderEndTime-startTime)*1e-9))
-    if (AllButRenderEndTime-startTime)*9.9e-10 > playBagDuration:
-        print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.")
-    print("\nMaximum Time Durations")
-    print("Total:      %.2fms at step %i" % (maxTotalDur*1e-6, maxTotalDurStep))
-    print("Control:    %.2fms" % (maxControlDur*1e-6))
-    print("Log:        %.2fms" % (maxLogDur*1e-6))
-    print("Simulation: %.2fms" % (maxSimDur*1e-6))
-    print("Total Duration must not be larger than: %.2fms\n" %(1000/freq))
-    print("Current Frequency:                                 %i"%freq)
-    print("Potential Maximal Frequency:                       %i"%(1e9/maxTotalDur))
+
+    print("\n\nDONE!\n")
+    printHeader()
+
+    print("Potential Maximal Simulation Frequency:            %i"%(1e9/maxTotalDur))
     print("Recommended Frequency with with 10%% safety margin: %i\n"%(9e8/maxTotalDur))
 
     os._exit(1)

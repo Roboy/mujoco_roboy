@@ -1,6 +1,0 @@
-fixed_sp_allaxis
-P=12500 I=250 D=250
-Bagstart at 60 Bag Play duration 60
-Timestep (XML):0.010 Frequency 100
-
-RECORDING START
