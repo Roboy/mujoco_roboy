@@ -1,6 +1,6 @@
 <mujoco model="upper_body">
 	<compiler angle="radian" coordinate="local" inertiafromgeom="true" meshdir="meshes/" />
-	<option integrator="RK4" timestep="0.002" />
+	<option integrator="RK4" timestep="0.00125" />
 	<default>
 		<joint armature="0.5" damping="0.1" frictionloss="0.1" limited="true" />
 		<geom conaffinity="0" condim="3" density="1000.0" friction="0 0 0" />

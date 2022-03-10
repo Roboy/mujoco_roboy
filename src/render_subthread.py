@@ -31,15 +31,15 @@ modelXML = modelPath + "model_physics_rolljoint.xml"
 
 bagFile = 'fixed_sp_allaxis.bag'
 bagLocation = '/code/test_data'
-addName = 'tsEdit'
+addName = 'TS_Comp_800'
 
 playBag = True
 startBagAt = 60
-playBagDuration = 0.1
+playBagDuration = 60
 
 
 # Set Simulation Frequency. The higher, the better, as long as there is no lag.
-simFreq = 500
+simFreq = 800
 
 # Enable Logging and set Logging Frequency
 logging = True
@@ -105,7 +105,8 @@ else:
 
 
 sim = mujoco_py.MjSim(model)
-viewer = mujoco_py.MjViewer(sim)
+if render:
+    viewer = mujoco_py.MjViewer(sim)
 
 
 
