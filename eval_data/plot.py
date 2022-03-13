@@ -39,12 +39,16 @@ def readin(logfile):
             
         if line == 'RECORDING START\n':#reording starts in next line
             while line:
-                element[0] = int(f.readline().strip()) #first line of recording: Timestamp
-                element[1] = [float(k) for k in f.readline().strip().split()] #setpoints
-                element[2] = [float(k) for k in f.readline().strip().split()] #lengths
-                element[3] = [float(k) for k in f.readline().strip().split()] #forces
-                data.append(element.copy())
-                line = f.readline() #read in empty line
+                line = f.readline().strip()
+                if line == "":
+                    break
+                else:
+                    element[0] = int(line) #first line of recording: Timestamp
+                    element[1] = [float(k) for k in f.readline().strip().split()] #setpoints
+                    element[2] = [float(k) for k in f.readline().strip().split()] #lengths
+                    element[3] = [float(k) for k in f.readline().strip().split()] #forces
+                    data.append(element.copy())
+                    line = f.readline() #read in empty line
     return data
 
 

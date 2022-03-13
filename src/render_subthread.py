@@ -31,15 +31,16 @@ modelXML = modelPath + "model_physics_rolljoint.xml"
 
 bagFile = 'fixed_sp_allaxis.bag'
 bagLocation = '/code/test_data'
-addName = 'TS_Comp_800'
+addName = 'FreqComp_Norender'
 
 playBag = True
+# Note: First second is not recorded
 startBagAt = 60
-playBagDuration = 60
+playBagDuration = 61
 
 
 # Set Simulation Frequency. The higher, the better, as long as there is no lag.
-simFreq = 800
+simFreq = 1600
 
 # Enable Logging and set Logging Frequency
 logging = True
@@ -48,7 +49,7 @@ loggingFreq = 30
 
 # Specify render Frequency s.t. There are enough resources remaining for the subthread. Disable Rendering for maximal Simulation Frequency & Accuracy
 render = False
-renderFreq=60
+renderFreq=30
 
 P = int(sys.argv[1])
 I = int(sys.argv[2])
@@ -59,7 +60,7 @@ D = int(sys.argv[3])
 # D = 250
 
 # Leave empty to enable every joint. Set to control only the specified joint
-ControlOnlyJoint = "elbow_right"
+ControlOnlyJoint = ""
 
 
 nMotors = 38
@@ -68,6 +69,7 @@ dt = 1/simFreq
 
 stopThreads = False
 startAll = False
+logStartStep = simFreq
 
 
 bagName = bagFile[:bagFile.find('.bag')]
@@ -144,9 +146,10 @@ def log(logfile):
     print(*sim.data.actuator_force, file=logfile)
     print('', file=logfile)
 
-def logToRam():
-    global logvariable
-    logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str,setpoint)) + '\n' + ' '.join(map(str,sim.data.ten_length)) + '\n' + ' '.join(map(str,sim.data.actuator_force)) + '\n\n' )
+def logToRam(step):
+    if step > logStartStep:
+        global logvariable
+        logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str,setpoint)) + '\n' + ' '.join(map(str,sim.data.ten_length)) + '\n' + ' '.join(map(str,sim.data.actuator_force)) + '\n\n' )
 
 
 def tendonTargetCb(data):
@@ -261,7 +264,7 @@ def allButRender():
 
         #LOGGING
         if (logging & (simStep%logEveryN == 0)):
-            logToRam()
+            logToRam(simStep)
 
         logTime = time.time_ns()
 
@@ -292,11 +295,12 @@ def printHeader():
         print('Only joint %s was enabled.' %ControlOnlyJoint)
     print("")
     print("Real Time Duraion:      %.3fs" %playBagDuration)
-    print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-startTime)*1e-9) )
-    if (AllButRenderEndTime-startTime)*9.9e-10 > playBagDuration:
+    print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-simStartTime)*1e-9) )
+    print("Recording started after 1s at step %i\n" %(logStartStep) )
+    if (AllButRenderEndTime-simStartTime)*9.9e-10 > playBagDuration:
         print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.\n")
 
-    print('Simulation Frequency:   %i, equivalent to a Timestep of %.3fs,' % (simFreq, dt))
+    print('Simulation Frequency:   %i, equivalent to a Timestep of %.2fms,' % (simFreq, dt*1000))
     print('Logging Frequency:      %i' % (loggingFreq))
     print('Render Frequency:       %i\n' % (renderFreq))
 
@@ -340,7 +344,7 @@ if __name__ == '__main__':
 
     # Start simulation
     startAll = True
-    startTime = time.time_ns()
+    simStartTime = time.time_ns()
     
 
     # Start the bagfile
@@ -371,7 +375,7 @@ if __name__ == '__main__':
         print(logvariable)
         sys.stdout = originalStdout
 
-
+    print(np.sum(setpoint))
 
     print("\n\nDONE!\n")
     printHeader()
