@@ -18,30 +18,36 @@ import matplotlib.cm as cm
 import argparse
 from importlib.resources import path
 import io
+from pathlib import Path
 
 
 
 parser = argparse.ArgumentParser(description='Simulate Roboy in MuJoCo.')
 
-parser.add_argument('P', type=int, help='Proportional Gain')
-parser.add_argument('I', type=int, help='Derivational Gain')
-parser.add_argument('D', type=int, help='Integral Gain')
+parser.add_argument('P', type=int,                                                                  help='Proportional Gain')
+parser.add_argument('I', type=int,                                                                  help='Derivational Gain')
+parser.add_argument('D', type=int,                                                                  help='Integral Gain')
 parser.add_argument('simRate', type=int, help='Simulation Rate')
 
-parser.add_argument('--render',  metavar='RATE', type=int, help='Render frequency. Default: Off')
-parser.add_argument('--log', metavar='RATE', type=int, help='Logging frequency. Default: Off')
+parser.add_argument('--render',  metavar='RATE', type=int,                                          help='Render rate. Default: Off')
+parser.add_argument('--log', metavar='RATE', type=int,                                              help='Logging rate. Default: Off')
+parser.add_argument('--plot', action='store_true',                                                  help='Requires --log: Plotting after Finish. Default: Off')
 
 group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--bag', metavar=('BAGFILE','START[s]', 'DURATION[s]'), type=str, nargs = 3, help='Specify a bagfile inside test_data')
-group.add_argument('--dur', metavar=('DURATION[s]'), type=float, help='If --bag not used: How long to run the simulation')
-parser.add_argument('--ctrlOnly', metavar='JOINTNAME', type=str, help='Fix all But the specified Joint. Default: Off')
-parser.add_argument('--plot', action='store_true', help='Plotting after Finish. Default: Off.')
-parser.add_argument('--addName', metavar='TEXT', type=str, help='Additional Information added to Logfolder Name')
-parser.add_argument('--model', metavar='MODELFILE', default = "model.xml", type=str, help='Select another model than the standard model.xml inside mujoco_models')
-
+group.add_argument('--bag', metavar=('BAGFILE','START[s]', 'DURATION[s]'), type=str, nargs = 3,     help='Specify a bagfile inside test_data.')
+group.add_argument('--dur', metavar=('DURATION[s]'), type=float,                                    help='If --bag not used: How long to run the simulation.')
+parser.add_argument('--ctrlOnly', metavar='JOINTNAME', type=str,                                    help='Fix all But the specified Joint. Default: Off')
+parser.add_argument('--addName', metavar='TEXT', type=str,                                          help='Additional Information added to Logfolder Name.')
+parser.add_argument('--model', metavar='MODELFILE', default = "model.xml", type=str,                help='Select another model than the standard model.xml inside mujoco_models.')
 
 args = parser.parse_args()
+
+if args.plot and (args.log is None):
+    parser.error("--plot requires generation of logfile by --log")
+
+
 P, I, D, simRate = args.P, args.I, args.D, args.simRate
+
 if args.render:
     render = True
     renderRate = args.render
@@ -58,7 +64,7 @@ else:
 if args.bag:
     playBag = True
     bagFileStr = args.bag[0]
-    startBagAt = float(args.bag[1])
+    startRecAt = float(args.bag[1])
     playDuration = float(args.bag[2])
     # Compensate for .bag ending provided or not
     if bagFileStr.find('.bag')==-1:
@@ -115,24 +121,29 @@ dt = 1/simRate
 
 stopThreads = False
 startAll = False
+3
 
 
 
 
-
-
-logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startBagAt, playDuration, simRate)
-currLog = os.path.join(logDir, 'P%iI%iD%i' % (P, I, D))
-if not os.path.exists(currLog):
-    os.makedirs(currLog)
 
 if logging:
     global logvariable
     logvariable = ''
     logEveryN = int(simRate/loggingRate)
-# Start logging after 1s
-logStartStep = simRate
 
+# Logging is started after Second 1
+logStartStep = simRate
+if startRecAt >= 1:
+    startBagAt = startRecAt-1
+else:
+    startBagAt = 0
+
+
+logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startRecAt, playDuration, simRate)
+currLog = os.path.join(logDir, 'P%iI%iD%i' % (P, I, D))
+if not os.path.exists(currLog):
+    os.makedirs(currLog)
 
 if controlOnlyJoint:
     tree = ET.parse(modelXML)
@@ -255,14 +266,14 @@ def publishTendonForces(publisher, tendon_control, tendon_forces):
 
 def allButRender():
     simStep = 0
-    stopStep = playDuration*simRate
+    stopStep = simRate*(playDuration+1)
 
     errorPrev = np.zeros(nMotors)
     errorInt = np.zeros(nMotors)
 
     # global variables that are evaluated in the end
-    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime
-    maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime = 0, 0, 0, 0, 0, 0, 0
+    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur
+    maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     # local variables. Xtime is time AFTER operation X
     startTime, durLogTime, controlTime, logTime, simTime = 0, 0, 0, 0, 0
 
@@ -273,27 +284,32 @@ def allButRender():
 
     while simStep<=stopStep:
 
-        oldstarttime = startTime
+        oldStartTime = startTime
         startTime = time.time_ns()
             
         # DURATIONS from prev. iteration
-        CurrTimeLogDur = durLogTime - oldstarttime
-        currcontroldur = controlTime - durLogTime 
-        currlogdur = logTime - controlTime
-        currsimulationdur = simTime - logTime
-        currtotaldur = simTime - oldstarttime
+        curTimeLogDur = durLogTime - oldStartTime
+        totalTimeLogDur += curTimeLogDur
+        curControlDur = controlTime - durLogTime 
+        totalControlDur += curControlDur
+        curLogDur = logTime - controlTime
+        totalLogDur += curLogDur
+        curSimDur = simTime - logTime
+        totalSimDur += curSimDur
+        curTotalDur = simTime - oldStartTime
+        totalTotalDur += curTotalDur
 
         # set the maximum
-        if (CurrTimeLogDur > maxTimeLogDur):
-            maxTimeLogDur = CurrTimeLogDur
-        if (currcontroldur > maxControlDur):
-            maxControlDur = currcontroldur
-        if (currlogdur > maxLogDur):
-            maxLogDur = currlogdur
-        if (currsimulationdur > maxSimDur):
-            maxSimDur = currsimulationdur
-        if (currtotaldur > maxTotalDur):
-            maxTotalDur = currtotaldur
+        if (curTimeLogDur > maxTimeLogDur):
+            maxTimeLogDur = curTimeLogDur
+        if (curControlDur > maxControlDur):
+            maxControlDur = curControlDur
+        if (curLogDur > maxLogDur):
+            maxLogDur = curLogDur
+        if (curSimDur > maxSimDur):
+            maxSimDur = curSimDur
+        if (curTotalDur > maxTotalDur):
+            maxTotalDur = curTotalDur
             maxTotalDurStep = simStep
 
         durLogTime = time.time_ns()
@@ -330,6 +346,7 @@ def allButRender():
         RosSimRate.sleep()
 
     AllButRenderEndTime = time.time_ns()
+    [avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur] = [x/(stopStep -1) for x in [totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur]]
 
 
 def kill(proc_pid):
@@ -343,38 +360,29 @@ def readin(logvariable):
     data = []
     element =[0,[],[],[]]
     f = io.StringIO(logvariable)
-    line = f.readline().strip()
-    print(line)
-    while line:
-        if line == "":
+    while True:
+        timestampline = f.readline().strip()
+        if not timestampline:
             break
         else:
-            element[0] = int(line) #first line of recording: Timestamp
+            element[0] = int(timestampline) #first line of recording: Timestamp
             element[1] = [float(k) for k in f.readline().strip().split()] #setpoints
             element[2] = [float(k) for k in f.readline().strip().split()] #lengths
             element[3] = [float(k) for k in f.readline().strip().split()] #forces
             data.append(element.copy())
-            line = f.readline() #read in empty line
+            f.readline() #read in empty line
     return data
 
 
-def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
+def generatePlot(plotData, currLog, startsec=None, endsec=None):
 
-    currentdir = os.path.join(bagdir,PIDvalues)
-    Path(currentdir).mkdir(parents=True, exist_ok=True)
+    PIDvalues = 'P%iI%iD%i' % (P, I, D)
 
-
-    # In[3]:
-    data=readin(currentdir+'/logfile')
-    
-
-
-    tendonnr = len(data[1][1])    
-    xmin = min([m[0] for m in data])
-    t = [(x[0]-xmin)*1e-9 for x in data]
-    setpoints = [m[1] for m in data]
-    lengths = [m[2] for m in data]
-    forces = [m[3] for m in data]
+    xmin = min([m[0] for m in plotData])
+    t = [(x[0]-xmin)*1e-9+startRecAt for x in plotData]
+    setpoints = [m[1] for m in plotData]
+    lengths = [m[2] for m in plotData]
+    forces = [m[3] for m in plotData]
 
     
     if startsec and endsec:
@@ -382,7 +390,7 @@ def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
         endindex = next(t[0] for t in enumerate(t) if t[1]>= endsec)
     else:
         startindex = 0
-        endindex = len(data)-1 #OMIT last data entry becasuse it might be incomplete
+        endindex = len(plotData)-1 #OMIT last data entry becasuse it might be incomplete
 
     t=t[startindex:endindex]
     setpoints=setpoints[startindex:endindex]
@@ -390,7 +398,8 @@ def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
     forces=forces[startindex:endindex]
 
 
-# PLOT SHOULDER
+
+
     shoulder_indexgroup=[[0,1,2,3,4,5,6,7],[0,2,4,6],[1,3,5,7]]
 
 
@@ -409,31 +418,36 @@ def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
             axs_shoulder_spl[s].plot(t, [l[u] for l in lengths], linewidth=3, color=shoulder_colors[shoulder_indexgroup[0].index(u)])
             axs_shoulder_f[s].plot(t, [f[u] for f in forces], linewidth=3, color=shoulder_colors[shoulder_indexgroup[0].index(u)])
 
-    axs_shoulder_spl[0].set_title('All shoulder Tendons', fontsize = 30)
-    axs_shoulder_spl[1].set_title('Shoulder Tendons %s' %shoulder_indexgroup[1], fontsize = 30)
-    axs_shoulder_spl[2].set_title('Shoulder Tendons  %s' %shoulder_indexgroup[2], fontsize = 30)
+    axs_shoulder_spl[0].set_title('All shoulder Tendons', fontsize = 34)
+    axs_shoulder_spl[1].set_title('Shoulder Tendons %s' %shoulder_indexgroup[1], fontsize = 34)
+    axs_shoulder_spl[2].set_title('Shoulder Tendons %s' %shoulder_indexgroup[2], fontsize = 34)
 
-    axs_shoulder_f[0].set_title('All shoulder Tendons', fontsize = 30)
-    axs_shoulder_f[1].set_title('Shoulder Tendons %s' %shoulder_indexgroup[1], fontsize = 30)
-    axs_shoulder_f[2].set_title('Shoulder Tendons  %s' %shoulder_indexgroup[2], fontsize = 30)
+    axs_shoulder_f[0].set_title('All shoulder Tendons', fontsize = 34)
+    axs_shoulder_f[1].set_title('Shoulder Tendons %s' %shoulder_indexgroup[1], fontsize = 34)
+    axs_shoulder_f[2].set_title('Shoulder Tendons %s' %shoulder_indexgroup[2], fontsize = 34)
 
     for a in axs_shoulder_spl:
-        a.set_xlabel('Time [s]', fontsize=20)
-        a.set_ylabel('Length [m]', fontsize=20)
+        a.set_xlabel('Time [s]', fontsize=26)
+        a.set_ylabel('Length [m]', fontsize=26)
+        a.tick_params(labelsize=20)
 
     for a in axs_shoulder_f:
-        a.set_xlabel('Time [s]', fontsize=20)
-        a.set_ylabel('Force [N]', fontsize=20)
+        a.set_xlabel('Time [s]', fontsize=26)
+        a.set_ylabel('Force [N]', fontsize=26)
+        a.tick_params(labelsize=20)
 
-    fig_shoulder_spl.suptitle('Setpoints (dashed) and Lenghts - %s - Time from %is to %is' % (PIDvalues, t[0], t[-1]), fontsize = 30)
-    fig_shoulder_spl.savefig(currentdir+'/shoulder_%s_s%ie%i_SPL.png' %(PIDvalues, t[0], t[-1]) , dpi = 100)
-
-    fig_shoulder_f.suptitle('Forces - %s - Time from %is to %is' % (PIDvalues, t[0], t[-1]), fontsize = 30)
-    fig_shoulder_f.savefig(currentdir+'/shoulder_%s_s%ie%i_F.png' %(PIDvalues, t[0], t[-1]) , dpi = 100)
+    fig_shoulder_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' % (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize = 34)
+    fig_shoulder_spl.savefig(currLog+'/SPL_shoulder_%s_s%id%i_%r.svg' %(PIDvalues, startRecAt, playDuration, simRate) , dpi = 100)
+  
+    fig_shoulder_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' % (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize = 34)
+    fig_shoulder_f.savefig(currLog+'/F_shoulder_%s_s%id%i_%r.svg' %(PIDvalues, startRecAt, playDuration, simRate) , dpi = 100)
     plt.close('all')
 
 
-#PLOT BI AND TRICEPS
+
+
+
+
     fig_cepses_spl, axs_cepses_spl = plt.subplots(1, constrained_layout=True)
     fig_cepses_spl.set_size_inches(40, 15)
 
@@ -443,12 +457,10 @@ def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
     axs_cepses_spl.plot(t,[s[17] for s in setpoints], '-.', color='red')
     axs_cepses_spl.plot(t,[l[17] for l in lengths], linewidth=3, color='red')
 
-    axs_cepses_spl.set_title('Biceps (red) and Triceps (green)', fontsize = 30)
-    axs_cepses_spl.set_xlabel('Time [s]', fontsize=20)
-    axs_cepses_spl.set_ylabel('Length [m]', fontsize=20)
-
-    fig_cepses_spl.suptitle('Setpoints (dashed) and Lenghts - %s - Time from %is to %is' % (PIDvalues, t[0], t[-1]), fontsize = 30)
-    fig_cepses_spl.savefig(currentdir+'/cepses%s_s%ie%i_SPL.png' %(PIDvalues, t[0], t[-1]) , dpi = 100)
+    axs_cepses_spl.set_title('Biceps (red) and Triceps (green)', fontsize = 34)
+    axs_cepses_spl.set_xlabel('Time [s]', fontsize=26)
+    axs_cepses_spl.set_ylabel('Length [m]', fontsize=26)
+    axs_cepses_spl.tick_params(labelsize=20)
 
 
 
@@ -459,13 +471,17 @@ def PLOT(bagdir, PIDvalues, startsec=None, endsec=None):
 
     axs_cepses_f.plot(t,[f[17] for f in forces], linewidth=3, color='red')
 
-    axs_cepses_f.set_title('Biceps (red) and Triceps (green)', fontsize = 30)
-    axs_cepses_f.set_xlabel('Time [s]', fontsize=20)
-    axs_cepses_f.set_ylabel('Length [m]', fontsize=20)
+    axs_cepses_f.set_title('Biceps (red) and Triceps (green)', fontsize = 34)
+    axs_cepses_f.set_xlabel('Time [s]', fontsize=26)
+    axs_cepses_f.set_ylabel('Length [m]', fontsize=26)
+    axs_cepses_f.tick_params(labelsize=20)
 
-    fig_cepses_f.suptitle('Forces - %s - Time from %is to %is' % (PIDvalues, t[0], t[-1]), fontsize = 30)
-    fig_cepses_f.savefig(currentdir+'/cepses%s_s%ie%i_F.png' %(PIDvalues, t[0], t[-1]) , dpi = 100)
+    fig_cepses_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' % (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize = 34)
+    fig_cepses_spl.savefig(currLog+'/SPL_cepses_%s_s%id%i_%r.svg' %(PIDvalues, startRecAt, playDuration, simRate) , dpi = 100)
 
+
+    fig_cepses_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' % (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize = 34)
+    fig_cepses_f.savefig(currLog+'/F_cepses_%s_s%id%i_%r.svg' %(PIDvalues, startRecAt, playDuration, simRate) , dpi = 100)
     plt.close('all')
 
 
@@ -473,31 +489,38 @@ def printHeader():
     print('Bagfile: %s' %bagName)
     print('P=%i I=%i D=%i'%(P,I,D))
     if playBag:
-        print('Bagfile played from %is for %is.'%(startBagAt,playDuration))
+        print('Bagfile played from %is for %is.'%(startRecAt,playDuration))
     if controlOnlyJoint:
         print('Only joint %s was enabled.' %controlOnlyJoint)
     print("")
     print("Real Time Duraion:      %.3fs" %playDuration)
-    print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-simStartTime)*1e-9) )
-    print("Recording started after 1s at step %i\n" %(logStartStep) )
-    if (AllButRenderEndTime-simStartTime)*9.9e-10 > playDuration:
-        print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.\n")
+    # -1 because first second omitted
+    print("Duarion for Simulation: %.3fs" %((AllButRenderEndTime-simStartTime)*1e-9-1) )
+    print('Simulation ran at %.3f%% real time speed\n' % realTimeSpeed)
+    if realTimeSpeed < 99:
+        print("ERROR. \nThe simulation ran more than one percent below real time. \nTry to decrease the render rate in order to free up resources for the simulation subthread.\n")
 
-    print('Simulation Frequency:   %i, equivalent to a Timestep of %.2fms,' % (simRate, dt*1000))
+    print('Simulation rate:   %i, equivalent to a Timestep of %.2fms,' % (simRate, dt*1000))
     if logging:
-        print('Logging Frequency:      %i' % (loggingRate))
+        print('Logging rate:      %i' % (loggingRate))
     else:
-        print('Logging Frequency:      OFF')
+        print('Logging rate:      OFF')
     if render:
-        print('Render Frequency:       %i\n' % (renderRate))
+        print('Render rate:       %i\n' % (renderRate))
     else:
-        print('Render Frequency:       OFF\n')
+        print('Render rate:       OFF\n')
 
     print("Maximum Time Durations")
     print("Total:                  %.2fms at step %i (must not be larger than %.2fms)" % (maxTotalDur*1e-6, maxTotalDurStep, 1000/simRate))
     print("Control:                %.2fms" % (maxControlDur*1e-6))
     print("Log:                    %.2fms" % (maxLogDur*1e-6))
     print("Simulation:             %.2fms\n" % (maxSimDur*1e-6))
+
+    print("Average Time Durations")
+    print("Total:                  %.2fms" % (avgTotalDur*1e-6))
+    print("Control:                %.2fms" % (avgControlDur*1e-6))
+    print("Log:                    %.2fms" % (avgLogDur*1e-6))
+    print("Simulation:             %.2fms\n" % (avgSimDur*1e-6))
 
 
 
@@ -543,9 +566,10 @@ if __name__ == '__main__':
     
 
     # Define loop End Time, Start the bagfile
-    loopEndTime = time.time_ns() +  int(1e9*playDuration)
+    # StartBagAt is one second before StartRecAt. PlayDuration is one Second more.
+    loopEndTime = time.time_ns() +  int(1e9*(playDuration+1))
     if playBag:
-        playerProc = subprocess.Popen(['rosbag', 'play', bagFile, '-s %f' %startBagAt, '-u %f' %playDuration], cwd=bagLocation)
+        playerProc = subprocess.Popen(['rosbag', 'play', bagFile, '-s %f' %startBagAt, '-u %f' %(playDuration+1)], cwd=bagLocation)
 
     # Render for the expected time
     while time.time_ns() < loopEndTime:
@@ -558,6 +582,8 @@ if __name__ == '__main__':
     if playBag:
         kill(playerProc.pid)
     stopThreads = True
+
+    realTimeSpeed = 100*playDuration/((AllButRenderEndTime-simStartTime)*1e-9-1)
 
     # Create the logfile
     if logging:
@@ -576,13 +602,10 @@ if __name__ == '__main__':
     print("\n\nDONE!\n")
     printHeader()
 
-
-    print("Potential Maximal Simulation Frequency:            %i"%(1e9/maxTotalDur))
-    print("Recommended Frequency with with 10%% safety margin: %i\n"%(9e8/maxTotalDur))
-
     if plot:
         print('Plotting...')
-        readin(logvariable)
+        plotData = readin(logvariable)
+        generatePlot(plotData, currLog)
 
 
 
