@@ -15,52 +15,76 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-
 import argparse
 from importlib.resources import path
 
+
+
 parser = argparse.ArgumentParser(description='Simulate Roboy in MuJoCo.')
-
-
-#playBagParser.add_argument('file', type=str, help='bagfile path')
 
 parser.add_argument('P', type=int, help='Proportional Gain')
 parser.add_argument('I', type=int, help='Derivational Gain')
 parser.add_argument('D', type=int, help='Integral Gain')
 parser.add_argument('simRate', type=int, help='Simulation Rate')
 
-parser.add_argument('--renderRate', metavar='Hz', type=int, help='Render frequency. Default: Off.')
-parser.add_argument('--loggingRate', metavar='Hz', type=int, help='Logging frequency. Default: Off.')
-parser.add_argument('--bag', metavar='X', type=str, nargs = 3, help='Bagfile, start second, play duration.')
+parser.add_argument('--render',  metavar='RATE', type=int, help='Render frequency. Default: Off')
+parser.add_argument('--log', metavar='RATE', type=int, help='Logging frequency. Default: Off')
+
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--bag', metavar=('BAGFILE','START[s]', 'DURATION[s]'), type=str, nargs = 3, help='Specify a bagfile inside test_data')
+group.add_argument('--dur', metavar=('DURATION[s]'), type=float, help='If --bag not used: How long to run the simulation')
+parser.add_argument('--ctrlOnly', metavar='JOINTNAME', type=str, help='Fix all But the specified Joint. Default: Off')
 parser.add_argument('--plot', action='store_true', help='Plotting after Finish. Default: Off.')
-parser.add_argument('--controlOnlyJoint', type=str, help='Fix all But the specified Joint. Default: Off.')
+parser.add_argument('--addName', metavar='TEXT', type=str, help='Additional Information added to Logfolder Name')
+parser.add_argument('--model', metavar='MODELFILE', default = "model.xml", type=str, help='Select another model than the standard model.xml inside mujoco_models')
 
 
 args = parser.parse_args()
 P, I, D, simRate = args.P, args.I, args.D, args.simRate
-if args.renderRate:
+if args.render:
     render = True
-    renderRate = args.renderRate
+    renderRate = args.render
 else:
     render = False
+    renderRate = 1
 
-if args.loggingRate:
+if args.log:
     logging = True
-    loggingRate = args.loggingRate
+    loggingRate = args.log
 else:
     logging = False
 
 if args.bag:
     playBag = True
-    bagFile = args.playBag[0]
-    startBagAt = float(args.playBag[1])
-    playBagDuration = float(args.playBag[2])
+    bagFileStr = args.bag[0]
+    startBagAt = float(args.bag[1])
+    playDuration = float(args.bag[2])
+    # Compensate for .bag ending provided or not
+    if bagFileStr.find('.bag')==-1:
+        bagFile = bagFileStr + '.bag'
+    else:
+        bagFile = bagFileStr
+    bagName = bagFile[:bagFile.find('.bag')]
 else:
     playBag = False
+    bagName = ""
+    bagFile = ""
+    playDuration = float(args.dur)
 
+if args.ctrlOnly:
+    controlOnlyJoint = args.ctrlOnly
+else:
+    controlOnlyJoint = False
 
-if args.controlOnlyJoint:
-    controlOnlyJoint = args.controlOnlyJoint
+if args.addName:
+    addName = args.addName
+else:
+    addName = ""
+
+if args.plot:
+    plot = True
+else:
+    plot = False
 
 
 
@@ -76,32 +100,27 @@ if args.controlOnlyJoint:
 
 
 modelPath = "/code/mujoco_models/"
-modelXML = modelPath + "model_physics_rolljoint.xml"
+modelXML = modelPath + args.model
 
-# Use the same values as in the model.xml above
-
-
-bagFile = 'fixed_sp_allaxis.bag'
 bagLocation = '/code/test_data'
-addName = 'FreqComp_Norender'
 
-# Note: First second is not recorded
-startBagAt = 60
-playBagDuration = 0.5
 
 
 nMotors = 38
 simStep = 0
 dt = 1/simRate
 
+
+
 stopThreads = False
 startAll = False
-logStartStep = simRate
 
 
-bagName = bagFile[:bagFile.find('.bag')]
 
-logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startBagAt, playBagDuration, simRate)
+
+
+
+logDir = os.getcwd()+'/logfiles/%s_%s-s%i-u%i_F%i' % (addName, bagName , startBagAt, playDuration, simRate)
 currLog = os.path.join(logDir, 'P%iI%iD%i' % (P, I, D))
 if not os.path.exists(currLog):
     os.makedirs(currLog)
@@ -110,6 +129,8 @@ if logging:
     global logvariable
     logvariable = ''
     logEveryN = int(simRate/loggingRate)
+# Start logging after 1s
+logStartStep = simRate
 
 
 if controlOnlyJoint:
@@ -173,6 +194,7 @@ def log(logfile):
     print(*sim.data.actuator_force, file=logfile)
     print('', file=logfile)
 
+
 def logToRam(step):
     if step > logStartStep:
         global logvariable
@@ -232,7 +254,7 @@ def publishTendonForces(publisher, tendon_control, tendon_forces):
 
 def allButRender():
     simStep = 0
-    stopStep = playBagDuration*simRate
+    stopStep = playDuration*simRate
 
     errorPrev = np.zeros(nMotors)
     errorInt = np.zeros(nMotors)
@@ -290,8 +312,9 @@ def allButRender():
 
 
         #LOGGING
-        if (logging & (simStep%logEveryN == 0)):
-            logToRam(simStep)
+        if logging:
+            if simStep%logEveryN == 0:
+                logToRam(simStep)
 
         logTime = time.time_ns()
 
@@ -314,22 +337,30 @@ def kill(proc_pid):
         proc.kill()
     process.kill()
 
+
 def printHeader():
     print('Bagfile: %s' %bagName)
     print('P=%i I=%i D=%i'%(P,I,D))
-    print('Bagfile played from %i for %is.'%(startBagAt,playBagDuration))
+    if playBag:
+        print('Bagfile played from %is for %is.'%(startBagAt,playDuration))
     if controlOnlyJoint:
         print('Only joint %s was enabled.' %controlOnlyJoint)
     print("")
-    print("Real Time Duraion:      %.3fs" %playBagDuration)
+    print("Real Time Duraion:      %.3fs" %playDuration)
     print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-simStartTime)*1e-9) )
     print("Recording started after 1s at step %i\n" %(logStartStep) )
-    if (AllButRenderEndTime-simStartTime)*9.9e-10 > playBagDuration:
+    if (AllButRenderEndTime-simStartTime)*9.9e-10 > playDuration:
         print("\nERROR. \nThe Simulation ran more than one Percent below real time. \nTry to decrease the Render Frequency in order to free up resources for the simulation subthread.\n")
 
     print('Simulation Frequency:   %i, equivalent to a Timestep of %.2fms,' % (simRate, dt*1000))
-    print('Logging Frequency:      %i' % (loggingRate))
-    print('Render Frequency:       %i\n' % (renderRate))
+    if logging:
+        print('Logging Frequency:      %i' % (loggingRate))
+    else:
+        print('Logging Frequency:      OFF')
+    if render:
+        print('Render Frequency:       %i\n' % (renderRate))
+    else:
+        print('Render Frequency:       OFF\n')
 
     print("Maximum Time Durations")
     print("Total:                  %.2fms at step %i (must not be larger than %.2fms)" % (maxTotalDur*1e-6, maxTotalDurStep, 1000/simRate))
@@ -342,6 +373,12 @@ def printHeader():
 if __name__ == '__main__':
 
     topicRoot = "/roboy/pinky"
+    try:
+        rospy.get_master()
+    except:
+        print('ros not running')
+
+
     tendonTargetSub = rospy.Subscriber(f"{topicRoot}/middleware/MotorCommand", MotorCommand, tendonTargetCb)
 
     # Subthread that does Everzthing but Rendering
@@ -374,19 +411,21 @@ if __name__ == '__main__':
     simStartTime = time.time_ns()
     
 
-    # Start the bagfile
-    bagEndTime = time.time_ns() +  int(1e9*playBagDuration)
-    playerProc = subprocess.Popen(['rosbag', 'play', bagFile, '-s %f' %startBagAt, '-u %f' %playBagDuration], cwd=bagLocation)
+    # Define loop End Time, Start the bagfile
+    loopEndTime = time.time_ns() +  int(1e9*playDuration)
+    if playBag:
+        playerProc = subprocess.Popen(['rosbag', 'play', bagFile, '-s %f' %startBagAt, '-u %f' %playDuration], cwd=bagLocation)
 
     # Render for the expected time
-    while time.time_ns() < bagEndTime:
+    while time.time_ns() < loopEndTime:
         if render:
             viewer.render()
         RosRenderRate.sleep()
     
     # ensure everything finished
     time.sleep(1)
-    kill(playerProc.pid)
+    if playBag:
+        kill(playerProc.pid)
     stopThreads = True
 
     # Create the logfile
@@ -402,12 +441,16 @@ if __name__ == '__main__':
         print(logvariable)
         sys.stdout = originalStdout
 
-    print(np.sum(setpoint))
 
     print("\n\nDONE!\n")
     printHeader()
 
+
     print("Potential Maximal Simulation Frequency:            %i"%(1e9/maxTotalDur))
     print("Recommended Frequency with with 10%% safety margin: %i\n"%(9e8/maxTotalDur))
+
+    if plot:
+        print('Plotting...')
+
 
     os._exit(1)

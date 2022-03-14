@@ -20,6 +20,7 @@ RUN apt-get update -q \
     swig \
     python3-pkgconfig \
     python3-pip \
+    python3-tk \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
