@@ -12,6 +12,58 @@ import time
 import threading
 import xml.etree.ElementTree as ET
 
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+
+import argparse
+from importlib.resources import path
+
+parser = argparse.ArgumentParser(description='Simulate Roboy in MuJoCo.')
+
+
+#playBagParser.add_argument('file', type=str, help='bagfile path')
+
+parser.add_argument('P', type=int, help='Proportional Gain')
+parser.add_argument('I', type=int, help='Derivational Gain')
+parser.add_argument('D', type=int, help='Integral Gain')
+parser.add_argument('simRate', type=int, help='Simulation Rate')
+
+parser.add_argument('--renderRate', metavar='Hz', type=int, help='Render frequency. Default: Off.')
+parser.add_argument('--loggingRate', metavar='Hz', type=int, help='Logging frequency. Default: Off.')
+parser.add_argument('--bag', metavar='X', type=str, nargs = 3, help='Bagfile, start second, play duration.')
+parser.add_argument('--plot', action='store_true', help='Plotting after Finish. Default: Off.')
+parser.add_argument('--controlOnlyJoint', type=str, help='Fix all But the specified Joint. Default: Off.')
+
+
+args = parser.parse_args()
+P, I, D, simRate = args.P, args.I, args.D, args.simRate
+if args.renderRate:
+    render = True
+    renderRate = args.renderRate
+else:
+    render = False
+
+if args.loggingRate:
+    logging = True
+    loggingRate = args.loggingRate
+else:
+    logging = False
+
+if args.bag:
+    playBag = True
+    bagFile = args.playBag[0]
+    startBagAt = float(args.playBag[1])
+    playBagDuration = float(args.playBag[2])
+else:
+    playBag = False
+
+
+if args.controlOnlyJoint:
+    controlOnlyJoint = args.controlOnlyJoint
+
+
+
 
 # Information about code structure
 # Doing Simulation, log, sontrol, etc. AND rendering in one main loop does not work. 
@@ -33,34 +85,9 @@ bagFile = 'fixed_sp_allaxis.bag'
 bagLocation = '/code/test_data'
 addName = 'FreqComp_Norender'
 
-playBag = True
 # Note: First second is not recorded
 startBagAt = 60
 playBagDuration = 0.5
-
-
-# Set Simulation Frequency. The higher, the better, as long as there is no lag.
-simRate = 1600
-
-# Enable Logging and set Logging Frequency
-logging = True
-loggingRate = 30
-
-
-# Specify render Frequency s.t. There are enough resources remaining for the subthread. Disable Rendering for maximal Simulation Frequency & Accuracy
-render = False
-renderRate=30
-
-P = int(sys.argv[1])
-I = int(sys.argv[2])
-D = int(sys.argv[3])
-#ControlOnlyJoint = sys.argv[4]
-# P = 7500
-# I = 250
-# D = 250
-
-# Leave empty to enable every joint. Set to control only the specified joint
-ControlOnlyJoint = ""
 
 
 nMotors = 38
@@ -85,13 +112,13 @@ if logging:
     logEveryN = int(simRate/loggingRate)
 
 
-if ControlOnlyJoint:
+if controlOnlyJoint:
     tree = ET.parse(modelXML)
     root = tree.getroot()
     root.find("option").set("timestep", str(1/simRate))
     joint_found = [element for element in root.iter() if element.tag == "joint"]
     for joint in joint_found:
-        if "range" in joint.attrib and ControlOnlyJoint not in joint.attrib["name"]:
+        if "range" in joint.attrib and controlOnlyJoint not in joint.attrib["name"]:
             joint.set("range", "-0.001 0.0")
 
     xmlstr = ET.tostring(root, encoding='unicode', method='xml')
@@ -291,8 +318,8 @@ def printHeader():
     print('Bagfile: %s' %bagName)
     print('P=%i I=%i D=%i'%(P,I,D))
     print('Bagfile played from %i for %is.'%(startBagAt,playBagDuration))
-    if ControlOnlyJoint:
-        print('Only joint %s was enabled.' %ControlOnlyJoint)
+    if controlOnlyJoint:
+        print('Only joint %s was enabled.' %controlOnlyJoint)
     print("")
     print("Real Time Duraion:      %.3fs" %playBagDuration)
     print("Duarion for Simulation: %.3fs\n" %((AllButRenderEndTime-simStartTime)*1e-9) )
