@@ -19,6 +19,9 @@ import argparse
 import io
 import yaml
 
+from pathlib import Path
+
+
 
 parser = argparse.ArgumentParser(
     description='Simulate Roboy in MuJoCo. Use --help argument to see options')
@@ -122,6 +125,7 @@ dt = 1/simRate
 allButRenderFinished = False
 startAll = False
 
+logtmp = '/tmp/log.txt'
 
 
 
@@ -227,8 +231,14 @@ def log(logfile):
 
 
 def logToRam(step):
+    global logvariable
+
+    if logvariable != "" and step % (logEveryN * 100) == 0:
+        with open(logtmp, "a") as file_object:
+            file_object.write(logvariable)
+        logvariable = ""
+
     if step > logStartStep:
-        global logvariable
         logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str, setpoint)) + '\n' + ' '.join(
             map(str, sim.data.ten_length)) + '\n' + ' '.join(map(str, sim.data.actuator_force)) + '\n\n')
 
@@ -627,6 +637,12 @@ if __name__ == '__main__':
 
     # Create the logfile
     if logging:
+        logInFile = Path(logtmp).read_text()
+        logInFile += logvariable
+
+        logvariable = logInFile
+        os.remove(logtmp)
+
         # Redirect print output to logfile
         logfile = open('%s/logfile' % currLog, 'w')
         originalStdout = sys.stdout
