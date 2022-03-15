@@ -61,11 +61,11 @@
 						<geom mesh="upperarm_right" pos="-0.01115 0.00138 -0.17499" type="mesh" />
 						<body name="elbow_right" pos="-0.00106 0 -0.31208">
 							<inertial diaginertia="6.11957e-05 4.10767e-05 3.23314e-05" mass="0.0993452" pos="-0.00446646 0.0265529 -0.0448489" quat="0.99668 -0.0333565 -0.00284806 0.0742165" />
-							<joint axis="-1 0 0" limited="true" name="elbow_right_axis0" pos="0 0 0" range="0 0.82173" />
+							<joint axis="-1 0 0" limited="true" name="elbow_right_axis0" pos="0 0 0" range="-0.001 0.0" />
 							<geom mesh="elbow_right" pos="-0.00474 0.03025 -0.04463" type="mesh" />
 							<body name="lowerarm_right" pos="0.00042 0 -0.09">
 								<inertial diaginertia="0.00699686 0.0067429 0.00144117" mass="1.39833" pos="-0.00776405 -0.00141596 -0.0808734" quat="0.757636 0.000456816 -0.0157489 0.652487" />
-								<joint axis="1 0 0" limited="true" name="elbow_right_axis1" pos="0 0 0" range="-0.82173 0" />
+								<joint axis="1 0 0" limited="true" name="elbow_right_axis1" pos="0 0 0" range="-0.001 0.0" />
 								<geom mesh="lowerarm_right" pos="-0.00733 -0.00117 -0.11185" type="mesh" />
 								<body name="wrist_right_link1" pos="-0.00616 0 -0.21039">
 									<inertial diaginertia="1.88284e-07 1.86311e-07 1.86281e-07" mass="0.00426506" pos="-1.84967e-07 -6.44416e-08 -1.26282e-08" quat="0.884437 -0.0789859 0.352699 -0.295187" />
@@ -156,11 +156,11 @@
 						<site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01" />
 						<body name="elbow_left" pos="0.00906 0 -0.31208">
 							<inertial diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" mass="0.0993685" pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" />
-							<joint axis="-1 0 0" limited="true" name="elbow_left_axis0" pos="0 0 0" range="-0.001 0.0" />
+							<joint axis="-1 0 0" limited="true" name="elbow_left_axis0" pos="0 0 0" range="0 0.82173" />
 							<geom mesh="elbow_left" pos="-0.00325 0.03025 -0.04463" type="mesh" />
 							<body name="lowerarm_left" pos="-0.0015 0 -0.09">
 								<inertial diaginertia="0.00561403 0.0053067 0.00159342" mass="1.37556" pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" />
-								<joint axis="-1 0 0" name="elbow_left_axis1" pos="0 0 0" range="-0.001 0.0" />
+								<joint axis="-1 0 0" name="elbow_left_axis1" pos="0 0 0" range="0 0.82173" />
 								<geom mesh="lowerarm_left" pos="0.00049 -0.00129 -0.09306" type="mesh" />
 								<site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01" />
 								<site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01" />

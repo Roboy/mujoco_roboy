@@ -6,3 +6,10 @@ total length 100s
 B) 
 assuming 0deg is when arm is fully extended and 90deg when fully bent
 0 [30s] 15  [30s] 30  [30s] 45  [30s] 60  [30s] 75  [30s] 45  [30s] 15
+
+C) Elbow_only_C
+Say 0 is extended, 
+90 is 90 deg bent,
+# is 30s break
+
+0 # 45 # 15 # 45 # 15 # 60 # 15 # 75 # 15 #
