@@ -119,7 +119,7 @@ simStep = 0
 dt = 1/simRate
 
 
-stopThreads = False
+allButRenderFinished = False
 startAll = False
 
 
@@ -292,7 +292,7 @@ def allButRender():
     errorInt = np.zeros(nMotors)
 
     # global variables that are evaluated in the end
-    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur
+    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur, allButRenderRunning
     maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     # local variables. Xtime is time AFTER operation X
     startTime, durLogTime, controlTime, logTime, simTime = 0, 0, 0, 0, 0
@@ -300,10 +300,12 @@ def allButRender():
     while not startAll:
         pass
 
+    allButRenderRunning = True
+
     while simStep <= stopStep:
 
         oldStartTime = startTime
-        startTime = time.time_ns()
+        startTime = time.time_ns()//1000
 
         # DURATIONS from prev. iteration
         curTimeLogDur = durLogTime - oldStartTime
@@ -330,7 +332,7 @@ def allButRender():
             maxTotalDur = curTotalDur
             maxTotalDurStep = simStep
 
-        durLogTime = time.time_ns()
+        durLogTime = time.time_ns()//1000
 
         # CONTROL calculation
         error = setpoint - sim.data.ten_length
@@ -342,26 +344,29 @@ def allButRender():
 
         errorPrev = error
 
-        controlTime = time.time_ns()
+        controlTime = time.time_ns()//1000
 
         # LOGGING
         if logging:
             if simStep % logEveryN == 0:
                 logToRam(simStep)
 
-        logTime = time.time_ns()
+        logTime = time.time_ns()//1000
 
         # SIMULATION
         sim.step()
         simStep += 1
 
-        simTime = time.time_ns()
+        simTime = time.time_ns()//1000
 
         RosSimRate.sleep()
 
-    AllButRenderEndTime = time.time_ns()
+    AllButRenderEndTime = time.time_ns()//1000
+
     [avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur] = [
         x/(stopStep - 1) for x in [totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur]]
+
+    allButRenderRunning = False
 
 
 def kill(proc_pid):
@@ -526,7 +531,7 @@ def printHeader():
     print("Real Time Duraion:      %.3fs" % playDuration)
     # -1 because first second omitted
     print("Duarion for Simulation: %.3fs" %
-          ((AllButRenderEndTime-simStartTime)*1e-9-1))
+          ((AllButRenderEndTime-simStartTime)*1e-6-1))
     print('Simulation ran at %.3f%% real time speed\n' % realTimeSpeed)
     if realTimeSpeed < 99:
         print("ERROR. \nThe simulation ran more than one percent below real time. \nTry to decrease the render rate in order to free up resources for the simulation subthread.\n")
@@ -544,16 +549,16 @@ def printHeader():
 
     print("Maximum Time Durations")
     print("Total:                  %.2fms at step %i (must not be larger than %.2fms)" % (
-        maxTotalDur*1e-6, maxTotalDurStep, 1000/simRate))
-    print("Control:                %.2fms" % (maxControlDur*1e-6))
-    print("Log:                    %.2fms" % (maxLogDur*1e-6))
-    print("Simulation:             %.2fms\n" % (maxSimDur*1e-6))
+        maxTotalDur*1e-3, maxTotalDurStep, 1000/simRate))
+    print("Control:                %.2fms" % (maxControlDur*1e-3))
+    print("Log:                    %.2fms" % (maxLogDur*1e-3))
+    print("Simulation:             %.2fms\n" % (maxSimDur*1e-3))
 
     print("Average Time Durations")
-    print("Total:                  %.2fms" % (avgTotalDur*1e-6))
-    print("Control:                %.2fms" % (avgControlDur*1e-6))
-    print("Log:                    %.2fms" % (avgLogDur*1e-6))
-    print("Simulation:             %.2fms\n" % (avgSimDur*1e-6))
+    print("Total:                  %.2fms" % (avgTotalDur*1e-3))
+    print("Control:                %.2fms" % (avgControlDur*1e-3))
+    print("Log:                    %.2fms" % (avgLogDur*1e-3))
+    print("Simulation:             %.2fms\n" % (avgSimDur*1e-3))
 
 
 if __name__ == '__main__':
@@ -593,29 +598,32 @@ if __name__ == '__main__':
 
     # Start simulation
     startAll = True
-    simStartTime = time.time_ns()
+    simStartTime = time.time_ns()//1000
 
     # Define loop End Time, Start the bagfile
     # StartBagAt is one second before StartRecAt. PlayDuration is one Second more.
-    loopEndTime = time.time_ns() + int(1e9*(playDuration+1))
+    loopEndTime = time.time_ns()//1000 + int(1e6*(playDuration+1))
     if playBag:
         playerProc = subprocess.Popen(
             ['rosbag', 'play', bagFile, '-s %f' % startBagAt, '-u %f' % (playDuration+1)], cwd=bagLocation)
 
     # Render for the expected time
-    while time.time_ns() < loopEndTime:
+    while time.time_ns()//1000 < loopEndTime:
         if render:
             viewer.render()
         RosRenderRate.sleep()
 
     # ensure everything finished
-    time.sleep(1)
+    while allButRenderRunning:
+        print(allButRenderRunning)
+        RosRenderRate.sleep()
+
     if playBag:
         kill(playerProc.pid)
-    stopThreads = True
+    
 
     realTimeSpeed = 100*playDuration / \
-        ((AllButRenderEndTime-simStartTime)*1e-9-1)
+        ((AllButRenderEndTime-simStartTime)*1e-6-1)
 
     # Create the logfile
     if logging:
