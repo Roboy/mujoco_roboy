@@ -204,6 +204,15 @@ jointNames = [
      'wrist_left_axis0', 'wrist_left_axis1', 'wrist_left_axis2']
 ]
 
+jname2id = dict()
+
+startIdx = 0
+for body in jointNames:
+    jname2id.update({name:startIdx+id for id, name in enumerate(body)})
+    startIdx += len(body)
+
+jointTargets = np.array([0. for _ in range(len(jname2id))])
+
 tendonNamesInner = []
 for i in range(37):
     tendonNamesInner.append('motor%i' % i)
@@ -239,8 +248,9 @@ def logToRam(step):
         logvariable = ""
 
     if step > logStartStep:
-        logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str, setpoint)) + '\n' + ' '.join(
-            map(str, sim.data.ten_length)) + '\n' + ' '.join(map(str, sim.data.actuator_force)) + '\n\n')
+        logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str, setpoint)) + '\n' + 
+                        ' '.join(map(str, sim.data.ten_length)) + '\n' + ' '.join(map(str, sim.data.actuator_force)) + '\n' + 
+                        ' '.join(map(str, jointTargets)) + '\n' + ' '.join(map(str, sim.data.qpos)) + '\n\n')
 
 
 def tendonTargetCb(data):
@@ -250,6 +260,14 @@ def tendonTargetCb(data):
     control_id = list(data.global_id)
 
     setpoint[control_id] = -np.array(data.setpoint)
+
+
+def jointTargetCb(data):
+
+    global jointTargets
+
+    for name, pos in zip(list(data.name), list(data.position)):
+        jointTargets[jname2id[name]] = pos
 
 
 def publishJoitStates(publisher, joint_states):
@@ -388,7 +406,7 @@ def kill(proc_pid):
 
 def readin(logvariable):
     data = []
-    element = [0, [], [], []]
+    element = [0, [], [], [], [], []]
     f = io.StringIO(logvariable)
     while True:
         timestampline = f.readline().strip()
@@ -403,6 +421,10 @@ def readin(logvariable):
                           for k in f.readline().strip().split()]  # lengths
             element[3] = [float(k)
                           for k in f.readline().strip().split()]  # forces
+            element[4] = [float(k)
+                          for k in f.readline().strip().split()]  # joint targets
+            element[5] = [float(k)
+                          for k in f.readline().strip().split()]  # joint states
             data.append(element.copy())
             f.readline()  # read in empty line
     return data
@@ -417,6 +439,8 @@ def generatePlot(plotData, currLog, startsec=None, endsec=None):
     setpoints = [m[1] for m in plotData]
     lengths = [m[2] for m in plotData]
     forces = [m[3] for m in plotData]
+    j_targets = [m[4] for m in plotData]
+    j_states = [m[5] for m in plotData]
 
     if startsec and endsec:
         startindex = next(t[0] for t in enumerate(t) if t[1] >= startsec)
@@ -431,6 +455,8 @@ def generatePlot(plotData, currLog, startsec=None, endsec=None):
     setpoints = setpoints[startindex:endindex]
     lengths = lengths[startindex:endindex]
     forces = forces[startindex:endindex]
+    j_targets = j_targets[startindex:endindex]
+    j_states = j_states[startindex:endindex]
 
     # Plot the Shoulder
     shoulder_indexgroup = [
@@ -526,6 +552,39 @@ def generatePlot(plotData, currLog, startsec=None, endsec=None):
                           (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
     fig_elbow_f.savefig(currLog+'/F_elbow_%s_s%id%i_%r.svg' %
                          (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+
+    plt.close('all')
+
+    # Plot for joints
+    fig_joint, axs_joint = plt.subplots(2, constrained_layout=True)
+    fig_joint.set_size_inches(40, 15)
+
+    joint_colors = cm.hsv(np.linspace(0, 1, len(jointTargets)))
+
+    # Shoulder_left
+    for id in range(11,14):
+        axs_joint[0].plot(t, [t[id] for t in j_targets], '-.', color=joint_colors[id])
+        axs_joint[0].plot(t, [s[id] for s in j_states], color=joint_colors[id])
+
+    axs_joint[0].set_title('Shoulder left', fontsize=34)
+
+    # Elbow_left 
+    for id in range(14,16):
+        axs_joint[1].plot(t, [t[id] for t in j_targets], '-.', color=joint_colors[id])
+        axs_joint[1].plot(t, [s[id] for s in j_states], color=joint_colors[id])
+
+    axs_joint[1].set_title('Elbow left', fontsize=34)
+
+    for i in range(2):
+        axs_joint[i].set_xlabel('Time [s]', fontsize=26)
+        axs_joint[i].set_ylabel('Angle [radian]', fontsize=26)
+        axs_joint[i].tick_params(labelsize=20)
+
+    fig_joint.suptitle('Joints - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+                          (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
+    fig_joint.savefig(currLog+'/J_%s_s%id%i_%r.svg' %
+                         (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+
     plt.close('all')
 
 
@@ -581,6 +640,9 @@ if __name__ == '__main__':
 
     tendonTargetSub = rospy.Subscriber(
         f"{topicRoot}/middleware/MotorCommand", MotorCommand, tendonTargetCb)
+
+    jointTargetSub = rospy.Subscriber(
+        f"{topicRoot}/simulation/joint_targets", JointState, jointTargetCb)
 
     # Subthread that does Everzthing but Rendering
     allButRender_thread = threading.Thread(target=allButRender)
