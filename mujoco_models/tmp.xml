@@ -137,7 +137,7 @@
                 <geom name="shoulder_left_ball" type="sphere" pos="0.0 0.0 0.0" zaxis="0 1 0" size=".025 .025" rgba="1 1 0.5 .5" mass="0.3" />
 
 				<inertial diaginertia="7.86417e-07 6.69919e-07 6.68396e-07" mass="0.00940856" pos="-0.000936989 -0.000780799 0.000572682" quat="0.919964 -0.0195359 0.228955 0.317592" />
-				<joint axis="0.97437 0 0.22495" limited="true" name="shoulder_left_axis0" pos="0 0 0" range="-0.001 0.0" />
+				<joint axis="0.97437 0 0.22495" limited="true" name="shoulder_left_axis0" pos="0 0 0" range="-1 0.3" />
 				<geom mesh="shoulder_left_link1" type="mesh" />
 				<body name="shoulder_left_link2" pos="0 0 0">
                     <geom name="shoulder_left_bar" type="cylinder" pos="0.0075 0.0 -0.1" zaxis="0 0 1" size=".015 .08" rgba="1 1 0.5 .5" mass="0.3" />
@@ -156,11 +156,11 @@
 						<site name="vp_back_upper_left" pos="0.00757658  0.05723908 -0.31926468" size="0.01" />
 						<body name="elbow_left" pos="0.00906 0 -0.31208">
 							<inertial diaginertia="6.10982e-05 4.10608e-05 3.23046e-05" mass="0.0993685" pos="-0.00351928 0.0265538 -0.0448691" quat="0.996633 -0.0338333 0.00282706 -0.0746281" />
-							<joint axis="-1 0 0" limited="true" name="elbow_left_axis0" pos="0 0 0" range="0 0.82173" />
+							<joint axis="-1 0 0" limited="true" name="elbow_left_axis0" pos="0 0 0" range="-0.001 0.0" />
 							<geom mesh="elbow_left" pos="-0.00325 0.03025 -0.04463" type="mesh" />
 							<body name="lowerarm_left" pos="-0.0015 0 -0.09">
 								<inertial diaginertia="0.00561403 0.0053067 0.00159342" mass="1.37556" pos="0.00112663 -0.00104066 -0.0630844" quat="0.65513 0.0201689 -0.000597953 0.755247" />
-								<joint axis="-1 0 0" name="elbow_left_axis1" pos="0 0 0" range="0 0.82173" />
+								<joint axis="-1 0 0" name="elbow_left_axis1" pos="0 0 0" range="-0.001 0.0" />
 								<geom mesh="lowerarm_left" pos="0.00049 -0.00129 -0.09306" type="mesh" />
 								<site name="vp_front_lower_left" pos="0.02349303 -0.03971459 -0.02732893" size="0.01" />
 								<site name="vp_back_lower_left" pos="-0.00150697  0.04439288  0.00109356" size="0.01" />
@@ -274,7 +274,7 @@
 			<site site="motor0_torso_2" />
 			<site site="motor0_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor0_upperarm_left" />
 		</spatial>
 		<spatial name="motor1">
@@ -282,7 +282,7 @@
 			<site site="motor1_torso_2" />
 			<site site="motor1_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor1_upperarm_left" />
 		</spatial>
 		<spatial name="motor2">
@@ -290,7 +290,7 @@
 			<site site="motor2_torso_2" />
 			<site site="motor2_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor2_upperarm_left" />
 		</spatial>
 		<spatial name="motor3">
@@ -298,7 +298,7 @@
 			<site site="motor3_torso_2" />
 			<site site="motor3_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_back" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor3_upperarm_left" />
 		</spatial>
 		<spatial name="motor4">
@@ -306,7 +306,7 @@
 			<site site="motor4_torso_2" />
 			<site site="motor4_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor4_upperarm_left" />
 		</spatial>
 		<spatial name="motor5">
@@ -314,7 +314,7 @@
 			<site site="motor5_torso_2" />
 			<site site="motor5_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor5_upperarm_left" />
 		</spatial>
 		<spatial name="motor6">
@@ -322,7 +322,7 @@
 			<site site="motor6_torso_2" />
 			<site site="motor6_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor6_upperarm_left" />
 		</spatial>
 		<spatial name="motor7">
@@ -330,7 +330,7 @@
 			<site site="motor7_torso_2" />
 			<site site="motor7_torso_3" />
             
-            <geom geom="shoulder_left_bar" sidesite="shoulder_left_bar_front" />
+            <geom geom="shoulder_left_bar" />
 			<site site="motor7_upperarm_left" />
 		</spatial>
 		<spatial name="motor8">
@@ -338,7 +338,7 @@
 			<site site="motor8_torso_2" />
 			<site site="motor8_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor8_upperarm_right" />
 		</spatial>
 		<spatial name="motor9">
@@ -346,7 +346,7 @@
 			<site site="motor9_torso_2" />
 			<site site="motor9_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor9_upperarm_right" />
 		</spatial>
 		<spatial name="motor10">
@@ -354,7 +354,7 @@
 			<site site="motor10_torso_2" />
 			<site site="motor10_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor10_upperarm_right" />
 		</spatial>
 		<spatial name="motor11">
@@ -362,7 +362,7 @@
 			<site site="motor11_torso_2" />
 			<site site="motor11_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_back" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor11_upperarm_right" />
 		</spatial>
 		<spatial name="motor12">
@@ -370,7 +370,7 @@
 			<site site="motor12_torso_2" />
 			<site site="motor12_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor12_upperarm_right" />
 		</spatial>
 		<spatial name="motor13">
@@ -378,7 +378,7 @@
 			<site site="motor13_torso_2" />
 			<site site="motor13_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor13_upperarm_right" />
 		</spatial>
 		<spatial name="motor14">
@@ -386,7 +386,7 @@
 			<site site="motor14_torso_2" />
 			<site site="motor14_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor14_upperarm_right" />
 		</spatial>
 		<spatial name="motor15">
@@ -394,7 +394,7 @@
 			<site site="motor15_torso_2" />
 			<site site="motor15_torso_3" />
             
-			<geom geom="shoulder_right_bar" sidesite="shoulder_right_bar_front" />
+			<geom geom="shoulder_right_bar" />
 			<site site="motor15_upperarm_right" />
 		</spatial>
 		<spatial name="motor16">

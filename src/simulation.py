@@ -26,9 +26,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument('P', type=int,
                     help='Proportional Gain')
 parser.add_argument('I', type=int,
-                    help='Derivational Gain')
-parser.add_argument('D', type=int,
                     help='Integral Gain')
+parser.add_argument('D', type=int,
+                    help='Derivational Gain')
 parser.add_argument('simRate', type=int, help='Simulation Rate')
 
 parser.add_argument('--render',  metavar='RATE', type=int,
@@ -67,10 +67,10 @@ else:
     renderRate = 1
 
 if args.log:
-    logging = True
-    loggingRate = args.log
+    log = True
+    logRate = args.log
 else:
-    logging = False
+    log = False
 
 if args.bag:
     playBag = True
@@ -105,11 +105,17 @@ if args.plot:
     plot = True
 else:
     plot = False
-
+    
+if args.model:
+    if args.model.find('.xml') == -1:
+        modelname = args.model + '.xml'
+    else:
+        modelname = args.model
 
 
 modelPath = "/code/mujoco_models/"
-modelXML = modelPath + args.model
+modelXML = modelPath + modelname
+
 
 bagLocation = '/code/test_data/'
 
@@ -133,10 +139,10 @@ else:
     startBagAt = 0
     startRecAt = 1
 
-if logging:
+if log:
     global logvariable
     logvariable = ''
-    logEveryN = int(simRate/loggingRate)
+    logEveryN = int(simRate/logRate)
 
     if parentFolder:
         logDir = os.path.join(os.getcwd(), 'logfiles', parentFolder, '%s-s%i-u%i_F%i%s' %
@@ -181,8 +187,9 @@ if playBag:
     if playDuration == 0 or playDuration > bagDuration - startBagAt:
         # Play until the end
         playDuration = bagDuration - startBagAt
+    endRecAt = startRecAt+playDuration
     print('\nPlaying %s of length %.2fs from Second %.2f for %.2fs until Second %.2f\n' % (
-        bagFile, bagDuration, startBagAt, playDuration, (startBagAt+playDuration)))
+        bagFile, bagDuration, startBagAt, playDuration, endRecAt))
 
 
 sim = mujoco_py.MjSim(model)
@@ -199,6 +206,15 @@ jointNames = [
      'elbow_left_axis0', 'elbow_left_axis1',
      'wrist_left_axis0', 'wrist_left_axis1', 'wrist_left_axis2']
 ]
+
+jname2id = dict()
+
+startIdx = 0
+for body in jointNames:
+    jname2id.update({name:startIdx+id for id, name in enumerate(body)})
+    startIdx += len(body)
+
+jointTargets = np.array([0. for _ in range(len(jname2id))])
 
 tendonNamesInner = []
 for i in range(37):
@@ -227,10 +243,11 @@ def log(logfile):
 
 
 def logToRam(step):
+    global logvariable
     if step > logStartStep:
-        global logvariable
-        logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str, setpoint)) + '\n' + ' '.join(
-            map(str, sim.data.ten_length)) + '\n' + ' '.join(map(str, sim.data.actuator_force)) + '\n\n')
+        logvariable += (str(rospy.Time.now()) + '\n' + ' '.join(map(str, setpoint)) + '\n' + 
+                        ' '.join(map(str, sim.data.ten_length)) + '\n' + ' '.join(map(str, sim.data.actuator_force)) + '\n' + 
+                        ' '.join(map(str, jointTargets)) + '\n' + ' '.join(map(str, sim.data.qpos)) + '\n\n')
 
 
 def tendonTargetCb(data):
@@ -240,6 +257,14 @@ def tendonTargetCb(data):
     control_id = list(data.global_id)
 
     setpoint[control_id] = -np.array(data.setpoint)
+
+
+def jointTargetCb(data):
+
+    global jointTargets
+
+    for name, pos in zip(list(data.name), list(data.position)):
+        jointTargets[jname2id[name]] = pos
 
 
 def publishJoitStates(publisher, joint_states):
@@ -347,7 +372,7 @@ def allButRender():
         controlTime = time.time_ns()//1000
 
         # LOGGING
-        if logging:
+        if log:
             if simStep % logEveryN == 0:
                 logToRam(simStep)
 
@@ -378,7 +403,7 @@ def kill(proc_pid):
 
 def readin(logvariable):
     data = []
-    element = [0, [], [], []]
+    element = [0, [], [], [], [], []]
     f = io.StringIO(logvariable)
     while True:
         timestampline = f.readline().strip()
@@ -393,34 +418,41 @@ def readin(logvariable):
                           for k in f.readline().strip().split()]  # lengths
             element[3] = [float(k)
                           for k in f.readline().strip().split()]  # forces
+            element[4] = [float(k)
+                          for k in f.readline().strip().split()]  # joint targets
+            element[5] = [float(k)
+                          for k in f.readline().strip().split()]  # joint states
             data.append(element.copy())
             f.readline()  # read in empty line
     return data
 
 
-def generatePlot(plotData, currLog, startsec=None, endsec=None):
+def generatePlot(plotData, currLog, startSec, endSec=0):
 
     PIDvalues = 'P%iI%iD%i' % (P, I, D)
 
     xmin = min([m[0] for m in plotData])
-    t = [(x[0]-xmin)*1e-9+startRecAt for x in plotData]
+    t = [(x[0]-xmin)*1e-9 for x in plotData]
     setpoints = [m[1] for m in plotData]
     lengths = [m[2] for m in plotData]
     forces = [m[3] for m in plotData]
+    j_targets = [m[4] for m in plotData]
+    j_states = [m[5] for m in plotData]
 
-    if startsec and endsec:
-        startindex = next(t[0] for t in enumerate(t) if t[1] >= startsec)
-        endindex = next(t[0] for t in enumerate(t) if t[1] >= endsec)
+    startindex = next(t[0] for t in enumerate(t) if t[1] >= startSec)
+    if endSec:
+        endindex = next(t[0] for t in enumerate(t) if t[1] >= endSec)
     else:
-        startindex = 0
-        # OMIT last data entry becasuse it might be incomplete
         endindex = len(plotData)-1
+
 
     # Initialize Data for Plot
     t = t[startindex:endindex]
     setpoints = setpoints[startindex:endindex]
     lengths = lengths[startindex:endindex]
     forces = forces[startindex:endindex]
+    j_targets = j_targets[startindex:endindex]
+    j_states = j_states[startindex:endindex]
 
     # Plot the Shoulder
     shoulder_indexgroup = [
@@ -469,14 +501,14 @@ def generatePlot(plotData, currLog, startsec=None, endsec=None):
         a.tick_params(labelsize=20)
 
     fig_shoulder_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
-                              (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
-    fig_shoulder_spl.savefig(currLog+'/SPL_shoulder_%s_s%id%i_%r.svg' %
-                             (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+                              (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_shoulder_spl.savefig(currLog+'/SPL_shoulder_%s_s%ie%i_%r.svg' %
+                             (PIDvalues, startSec, endSec, simRate), dpi=100)
 
     fig_shoulder_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
-                            (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
-    fig_shoulder_f.savefig(currLog+'/F_shoulder_%s_s%id%i_%r.svg' %
-                           (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+                            (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_shoulder_f.savefig(currLog+'/F_shoulder_%s_s%ie%i_%r.svg' %
+                           (PIDvalues, startSec, endSec, simRate), dpi=100)
     plt.close('all')
 
     # Plot the Elbow
@@ -508,14 +540,47 @@ def generatePlot(plotData, currLog, startsec=None, endsec=None):
     axs_elbow_f.tick_params(labelsize=20)
 
     fig_elbow_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
-                            (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
-    fig_elbow_spl.savefig(currLog+'/SPL_elbow_%s_s%id%i_%r.svg' %
-                           (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+                            (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_elbow_spl.savefig(currLog+'/SPL_elbow_%s_s%ie%i_%r.svg' %
+                           (PIDvalues, startSec, endSec, simRate), dpi=100)
 
     fig_elbow_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
-                          (P, I, D, bagName, startRecAt, playDuration, loggingRate, simRate, realTimeSpeed), fontsize=34)
-    fig_elbow_f.savefig(currLog+'/F_elbow_%s_s%id%i_%r.svg' %
-                         (PIDvalues, startRecAt, playDuration, simRate), dpi=100)
+                          (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_elbow_f.savefig(currLog+'/F_elbow_%s_s%ie%i_%r.svg' %
+                         (PIDvalues, startSec, endSec, simRate), dpi=100)
+    
+    plt.close('all')
+
+    # Plot for joints
+    fig_joint, axs_joint = plt.subplots(2, constrained_layout=True)
+    fig_joint.set_size_inches(40, 15*2)
+
+    joint_colors = cm.hsv(np.linspace(0, 1, len(jointTargets)))
+
+    # Shoulder_left
+    for id in range(11,14):
+        axs_joint[0].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
+        axs_joint[0].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+
+    axs_joint[0].set_title('Shoulder left', fontsize=34)
+
+    # Elbow_left 
+    for id in range(14,16):
+        axs_joint[1].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
+        axs_joint[1].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+
+    axs_joint[1].set_title('Elbow left', fontsize=34)
+
+    for i in range(2):
+        axs_joint[i].set_xlabel('Time [s]', fontsize=26)
+        axs_joint[i].set_ylabel('Angle [deg]', fontsize=26)
+        axs_joint[i].tick_params(labelsize=20)
+
+    fig_joint.suptitle('Joints - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+                          (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_joint.savefig(currLog+'/J_%s_s%ie%i_%r.svg' %
+                         (PIDvalues, startSec, endSec, simRate), dpi=100)
+
     plt.close('all')
 
 
@@ -523,7 +588,7 @@ def printHeader():
 
     if playBag:
         print('Bagfile: %s, Length: %.1fs.' % (bagName, bagDuration))
-        print('Played from %.1fs for %.1fs until %.1fs.' %
+        print('Recorded from %.1fs for %.1fs until %.1fs.' %
               (startRecAt, playDuration, (startRecAt+playDuration)))
     if controlOnlyJoint:
         print('Only joint %s was enabled.' % controlOnlyJoint)
@@ -538,8 +603,8 @@ def printHeader():
 
     print('Simulation rate:        %i (equivalent to a Timestep of %.2fms)' %
           (simRate, dt*1000))
-    if logging:
-        print('Logging rate:           %i' % (loggingRate))
+    if log:
+        print('Logging rate:           %i' % (logRate))
     else:
         print('Logging rate:           OFF')
     if render:
@@ -552,6 +617,9 @@ def printHeader():
         maxTotalDur*1e-3, maxTotalDurStep, 1000/simRate))
     print("Control:                %.2fms" % (maxControlDur*1e-3))
     print("Log:                    %.2fms" % (maxLogDur*1e-3))
+    if (maxLogDur*1e-3) > (1000/simRate):
+        print("ERROR. \nLogging took longer than expected. This is probably because the logvariable became too big. Reduce logging rate or decrease bag play duration.\n")
+
     print("Simulation:             %.2fms\n" % (maxSimDur*1e-3))
 
     print("Average Time Durations")
@@ -572,7 +640,10 @@ if __name__ == '__main__':
     tendonTargetSub = rospy.Subscriber(
         f"{topicRoot}/middleware/MotorCommand", MotorCommand, tendonTargetCb)
 
-    # Subthread that does Everzthing but Rendering
+    jointTargetSub = rospy.Subscriber(
+        f"{topicRoot}/simulation/joint_targets", JointState, jointTargetCb)
+
+    # Subthread that does Everything but Rendering
     allButRender_thread = threading.Thread(target=allButRender)
 
     # ROS Publishers are not used in this version
@@ -626,7 +697,7 @@ if __name__ == '__main__':
         ((AllButRenderEndTime-simStartTime)*1e-6-1)
 
     # Create the logfile
-    if logging:
+    if log:
         # Redirect print output to logfile
         logfile = open('%s/logfile' % currLog, 'w')
         originalStdout = sys.stdout
@@ -644,6 +715,6 @@ if __name__ == '__main__':
     if plot:
         print('Plotting...')
         plotData = readin(logvariable)
-        generatePlot(plotData, currLog)
+        generatePlot(plotData, currLog, startRecAt)
 
     os._exit(1)
