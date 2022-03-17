@@ -1,8 +1,8 @@
-For P = 16600 oscillations become self sustaining
+For P = 53500 oscillations become self sustaining
 
-Ultimate gain Ku = 16600
+Ultimate gain Ku = 53500
 
-24 oscillations in 10s
+23.5 oscillations in 8s
 Ultimate Period Tu = 0.41666
 
 
@@ -16,10 +16,10 @@ Ki = 1.2 Ku / Tu
 Kd = 0.075 Ku*Tu
 
 
-Ku = 16600.0000
-Tu = 0.4167
+Ku = 53500.0000
+Tu = 2.9375
 GAINS:
-Kp = 9960.0000
-Ki = 47808.0000
-Kd = 518.7500
+Kp = 32100.0000
+Ki = 21855.3191
+Kd = 11786.7188
 
