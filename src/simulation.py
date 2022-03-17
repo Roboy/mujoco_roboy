@@ -317,8 +317,8 @@ def allButRender():
     errorInt = np.zeros(nMotors)
 
     # global variables that are evaluated in the end
-    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur, allButRenderRunning
-    maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    global maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, avgTimeLogDur, avgControlDur, avgLogDur, avgSimDur, avgTotalDur, allButRenderRunning, firstLogDurLargeStep
+    maxTimeLogDur, maxControlDur, maxLogDur, maxSimDur, maxTotalDur, maxTotalDurStep, AllButRenderEndTime, totalTimeLogDur, totalControlDur, totalLogDur, totalSimDur, totalTotalDur, firstLogDurLargeStep= 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     # local variables. Xtime is time AFTER operation X
     startTime, durLogTime, controlTime, logTime, simTime = 0, 0, 0, 0, 0
 
@@ -351,6 +351,8 @@ def allButRender():
             maxControlDur = curControlDur
         if (curLogDur > maxLogDur):
             maxLogDur = curLogDur
+            if maxLogDur > (1000000/simRate):
+                firstLogDurLargeStep = simStep
         if (curSimDur > maxSimDur):
             maxSimDur = curSimDur
         if (curTotalDur > maxTotalDur):
@@ -552,36 +554,47 @@ def generatePlot(plotData, currLog, startSec, endSec=0):
     plt.close('all')
 
     # Plot for joints
-    fig_joint, axs_joint = plt.subplots(2, constrained_layout=True)
-    fig_joint.set_size_inches(40, 15*2)
+    fig_joint_elbow, axs_joint_elbow = plt.subplots(1, constrained_layout=True)
+    fig_joint_elbow.set_size_inches(40, 15)
+    fig_joint_shoulder, axs_joint_shoulder = plt.subplots(1, constrained_layout=True)
+    fig_joint_shoulder.set_size_inches(40, 15)
 
     joint_colors = cm.hsv(np.linspace(0, 1, len(jointTargets)))
 
     # Shoulder_left
-    for id in range(11,14):
-        axs_joint[0].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
-        axs_joint[0].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+    shoulder_colors = ['red', 'blue', 'yellow']
+    for i in range(2,-1,-1):
+        id = range(11,14)[i]
+        axs_joint_shoulder.plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=shoulder_colors[i])
+        axs_joint_shoulder.plot(t, [s[id]*57.2958 for s in j_states], color=shoulder_colors[i])
 
-    axs_joint[0].set_title('Shoulder left', fontsize=34)
 
     # Elbow_left 
-    for id in range(14,16):
-        axs_joint[1].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
-        axs_joint[1].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+    for id in range(14,15):
+        axs_joint_elbow.plot(t, [t[id]*57.2958 for t in j_targets], '-.', color = 'purple')
+        axs_joint_elbow.plot(t, [s[id]*57.2958 for s in j_states], color = 'purple')
 
-    axs_joint[1].set_title('Elbow left', fontsize=34)
+    axs_joint_shoulder.set_title('Axis 0 (red), Axis 1 (blue), Axis 2 (yellow)', fontsize=34)
+    axs_joint_shoulder.set_xlabel('Time [s]', fontsize=26)
+    axs_joint_shoulder.set_ylabel('Angle [deg]', fontsize=26)
+    axs_joint_shoulder.tick_params(labelsize=20)
 
-    for i in range(2):
-        axs_joint[i].set_xlabel('Time [s]', fontsize=26)
-        axs_joint[i].set_ylabel('Angle [deg]', fontsize=26)
-        axs_joint[i].tick_params(labelsize=20)
+    axs_joint_elbow.set_title('Elbow axis', fontsize=34)
+    axs_joint_elbow.set_xlabel('Time [s]', fontsize=26)
+    axs_joint_elbow.set_ylabel('Angle [deg]', fontsize=26)
+    axs_joint_elbow.tick_params(labelsize=20)
 
-    fig_joint.suptitle('Joints - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+    fig_joint_elbow.suptitle('Setpoint Angles (--) and Angles (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                           (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_joint.savefig(currLog+'/J_%s_s%ie%i_%r.svg' %
+    fig_joint_elbow.savefig(currLog+'/EJ_%s_s%ie%i_%r.svg' %
+                         (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_joint_shoulder.suptitle('Setpoint Angles (--) and Angles (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+                          (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_joint_shoulder.savefig(currLog+'/SJ_%s_s%ie%i_%r.svg' %
                          (PIDvalues, startSec, endSec, simRate), dpi=100)
 
     plt.close('all')
+
 
 
 def printHeader():
@@ -617,10 +630,9 @@ def printHeader():
         maxTotalDur*1e-3, maxTotalDurStep, 1000/simRate))
     print("Control:                %.2fms" % (maxControlDur*1e-3))
     print("Log:                    %.2fms" % (maxLogDur*1e-3))
-    if (maxLogDur*1e-3) > (1000/simRate):
-        print("ERROR. \nLogging took longer than expected. This is probably because the logvariable became too big. Reduce logging rate or decrease bag play duration.\n")
-
     print("Simulation:             %.2fms\n" % (maxSimDur*1e-3))
+    if (firstLogDurLargeStep > 0):
+        print("ERROR. \nLogging took longer than expected, first at step %i, at %.2fs. \nThis is probably because the logvariable became too big. Reduce logging rate or decrease bag play duration.\n"%(firstLogDurLargeStep, firstLogDurLargeStep/simRate))
 
     print("Average Time Durations")
     print("Total:                  %.2fms" % (avgTotalDur*1e-3))

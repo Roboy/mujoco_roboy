@@ -16,6 +16,8 @@ parser.add_argument('startsec', metavar='START[s]', type=int,
                     help='Start of plot')
 parser.add_argument('endsec',metavar='END[s]', type=int,
                     help='End of plot')
+parser.add_argument('--type',metavar='IMAGETYPE', type=str, default='png',
+                    help='png, svg')
 
 args = parser.parse_args()
 
@@ -28,6 +30,9 @@ else:
 
 startSec = args.startsec
 endSec = args.endsec
+imagetype = args.type
+
+
 
 jointTargets = [0]*19
 
@@ -160,13 +165,13 @@ def generatePlot(plotData, currLog, startSec, endSec=0):
 
     fig_shoulder_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                               (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_shoulder_spl.savefig(currLog+'/SPL_shoulder_%s_s%ie%i_%r.svg' %
-                             (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_shoulder_spl.savefig(currLog+'/SPL_shoulder_%s_s%ie%i_%r.%s' %
+                             (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
 
     fig_shoulder_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                             (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_shoulder_f.savefig(currLog+'/F_shoulder_%s_s%ie%i_%r.svg' %
-                           (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_shoulder_f.savefig(currLog+'/F_shoulder_%s_s%ie%i_%r.%s' %
+                           (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
     plt.close('all')
 
     # Plot the Elbow
@@ -199,45 +204,55 @@ def generatePlot(plotData, currLog, startSec, endSec=0):
 
     fig_elbow_spl.suptitle('Setpoints (--) and Lenghts (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                             (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_elbow_spl.savefig(currLog+'/SPL_elbow_%s_s%ie%i_%r.svg' %
-                           (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_elbow_spl.savefig(currLog+'/SPL_elbow_%s_s%ie%i_%r.%s' %
+                           (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
 
     fig_elbow_f.suptitle('Forces - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                           (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_elbow_f.savefig(currLog+'/F_elbow_%s_s%ie%i_%r.svg' %
-                         (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_elbow_f.savefig(currLog+'/F_elbow_%s_s%ie%i_%r.%s' %
+                         (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
     
     plt.close('all')
 
     # Plot for joints
-    fig_joint, axs_joint = plt.subplots(2, constrained_layout=True)
-    fig_joint.set_size_inches(40, 15*2)
+    fig_joint_elbow, axs_joint_elbow = plt.subplots(1, constrained_layout=True)
+    fig_joint_elbow.set_size_inches(40, 15)
+    fig_joint_shoulder, axs_joint_shoulder = plt.subplots(1, constrained_layout=True)
+    fig_joint_shoulder.set_size_inches(40, 15)
 
     joint_colors = cm.hsv(np.linspace(0, 1, len(jointTargets)))
 
     # Shoulder_left
-    for id in range(11,14):
-        axs_joint[0].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
-        axs_joint[0].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+    shoulder_colors = ['red', 'blue', 'yellow']
+    for i in range(2,-1,-1):
+        id = range(11,14)[i]
+        axs_joint_shoulder.plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=shoulder_colors[i])
+        axs_joint_shoulder.plot(t, [s[id]*57.2958 for s in j_states], color=shoulder_colors[i])
 
-    axs_joint[0].set_title('Shoulder left', fontsize=34)
 
     # Elbow_left 
-    for id in range(14,16):
-        axs_joint[1].plot(t, [t[id]*57.2958 for t in j_targets], '-.', color=joint_colors[id])
-        axs_joint[1].plot(t, [s[id]*57.2958 for s in j_states], color=joint_colors[id])
+    for id in range(14,15):
+        axs_joint_elbow.plot(t, [t[id]*57.2958 for t in j_targets], '-.', color = 'purple')
+        axs_joint_elbow.plot(t, [s[id]*57.2958 for s in j_states], color = 'purple')
 
-    axs_joint[1].set_title('Elbow left', fontsize=34)
+    axs_joint_shoulder.set_title('Axis 0 (red), Axis 1 (blue), Axis 2 (yellow)', fontsize=34)
+    axs_joint_shoulder.set_xlabel('Time [s]', fontsize=26)
+    axs_joint_shoulder.set_ylabel('Angle [deg]', fontsize=26)
+    axs_joint_shoulder.tick_params(labelsize=20)
 
-    for i in range(2):
-        axs_joint[i].set_xlabel('Time [s]', fontsize=26)
-        axs_joint[i].set_ylabel('Angle [deg]', fontsize=26)
-        axs_joint[i].tick_params(labelsize=20)
+    axs_joint_elbow.set_title('Elbow axis', fontsize=34)
+    axs_joint_elbow.set_xlabel('Time [s]', fontsize=26)
+    axs_joint_elbow.set_ylabel('Angle [deg]', fontsize=26)
+    axs_joint_elbow.tick_params(labelsize=20)
 
-    fig_joint.suptitle('Joints - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+    fig_joint_elbow.suptitle('Setpoint Angles (--) and Angles (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
                           (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
-    fig_joint.savefig(currLog+'/J_%s_s%ie%i_%r.svg' %
-                         (PIDvalues, startSec, endSec, simRate), dpi=100)
+    fig_joint_elbow.savefig(currLog+'/EJ_%s_s%ie%i_%r.%s' %
+                         (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
+    fig_joint_shoulder.suptitle('Setpoint Angles (--) and Angles (―) - P%i I%i D%i\nBagfile %s from %is for %is - Logging Rate %i - Simulation Rate %i - %.2f%% real time speed\n' %
+                          (P, I, D, bagName, startRecAt, endRecAt, logRate, simRate, realTimeSpeed), fontsize=34)
+    fig_joint_shoulder.savefig(currLog+'/SJ_%s_s%ie%i_%r.%s' %
+                         (PIDvalues, startSec, endSec, simRate, imagetype), dpi=100)
 
     plt.close('all')
 
