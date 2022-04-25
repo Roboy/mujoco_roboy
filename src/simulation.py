@@ -187,7 +187,7 @@ if playBag:
     # if no Duration was specified OR the specified duration is longer than the bagfile
     if recDuration == 0 or recDuration > bagDuration - startBagAt:
         # Play until the end
-        recDuration = bagDuration - startBagAt
+        recDuration = bagDuration - startRecAt
     endRecAt = startRecAt+recDuration
     print('\nPlaying %s of length %.2fs from Second %.2f for %.2fs until Second %.2f\n' % (
         bagFile, bagDuration, startBagAt, recDuration, endRecAt))
