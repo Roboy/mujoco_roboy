@@ -76,7 +76,7 @@ if args.bag:
     playBag = True
     bagFileStr = args.bag[0]
     startRecAt = float(args.bag[1])
-    playDuration = float(args.bag[2])
+    recDuration = float(args.bag[2])
     # Compensate for .bag ending provided or not
     if bagFileStr.find('.bag') == -1:
         bagFile = bagFileStr + '.bag'
@@ -87,7 +87,7 @@ else:
     playBag = False
     bagName = ""
     bagFile = ""
-    playDuration = float(args.dur)
+    recDuration = float(args.dur)
 
 if args.ctrlOnly:
     controlOnlyJoint = args.ctrlOnly
@@ -133,6 +133,7 @@ startAll = False
 
 # Logging is started after Second 1
 logStartStep = simRate
+
 if startRecAt >= 1:
     startBagAt = startRecAt-1
 else:
@@ -146,10 +147,10 @@ if log:
 
     if parentFolder:
         logDir = os.path.join(os.getcwd(), 'logfiles', parentFolder, '%s-s%i-u%i_F%i%s' %
-                            (bagName, startRecAt, playDuration, simRate, addCtrlOnlyName))
+                            (bagName, startRecAt, recDuration, simRate, addCtrlOnlyName))
     else:
         logDir = os.path.join(os.getcwd(), 'logfiles', '%s-s%i-d%i-r%i-ctrl_%s' %
-                            (bagName, startRecAt, playDuration, simRate, addCtrlOnlyName))
+                            (bagName, startRecAt, recDuration, simRate, addCtrlOnlyName))
                             
     currLog = os.path.join(logDir, 'P%iI%iD%i' % (P, I, D))
     if not os.path.exists(currLog):
@@ -184,12 +185,12 @@ if playBag:
         bagLocation, bagFile)], stdout=subprocess.PIPE).communicate()[0], Loader=yaml.BaseLoader)
     bagDuration = float(info_dict['duration'])
     # if no Duration was specified OR the specified duration is longer than the bagfile
-    if playDuration == 0 or playDuration > bagDuration - startBagAt:
+    if recDuration == 0 or recDuration > bagDuration - startBagAt:
         # Play until the end
-        playDuration = bagDuration - startBagAt
-    endRecAt = startRecAt+playDuration
+        recDuration = bagDuration - startBagAt
+    endRecAt = startRecAt+recDuration
     print('\nPlaying %s of length %.2fs from Second %.2f for %.2fs until Second %.2f\n' % (
-        bagFile, bagDuration, startBagAt, playDuration, endRecAt))
+        bagFile, bagDuration, startBagAt, recDuration, endRecAt))
 
 
 sim = mujoco_py.MjSim(model)
@@ -227,13 +228,15 @@ Kd = float(D) * np.ones(nMotors)
 Ki = float(I) * np.ones(nMotors)
 setpoint = np.zeros(nMotors)
 
-# Head
-Kp[np.arange(20, 25)] = 500.0
-Kd[np.arange(20, 25)] = 10.0
+# Manually define PID values for specific musles:
+
+# Biceps
+Kp[np.arange(16, 17)] = 32100
+Ki[np.arange(16, 17)] = 188588
+Kd[np.arange(16, 17)] = 1366
+
 
 # In the current verion this is not used. Logging to the harddrive direclly can slow down the loop by a bit. If Very long trajectories are recoreded, the log system can be switched.
-
-
 def log(logfile):
     print(rospy.Time.now(), file=logfile)
     print(*setpoint, file=logfile)
@@ -311,7 +314,7 @@ def publishTendonForces(publisher, tendon_control, tendon_forces):
 
 def allButRender():
     simStep = 0
-    stopStep = simRate*(playDuration+1)
+    stopStep = simRate*(recDuration+1)
 
     errorPrev = np.zeros(nMotors)
     errorInt = np.zeros(nMotors)
@@ -602,11 +605,11 @@ def printHeader():
     if playBag:
         print('Bagfile: %s, Length: %.1fs.' % (bagName, bagDuration))
         print('Recorded from %.1fs for %.1fs until %.1fs.' %
-              (startRecAt, playDuration, (startRecAt+playDuration)))
+              (startRecAt, recDuration, (startRecAt+recDuration)))
     if controlOnlyJoint:
         print('Only joint %s was enabled.' % controlOnlyJoint)
     print('\nP=%i I=%i D=%i\n' % (P, I, D))
-    print("Real Time Duraion:      %.3fs" % playDuration)
+    print("Real Time Duraion:      %.3fs" % recDuration)
     # -1 because first second omitted
     print("Duarion for Simulation: %.3fs" %
           ((AllButRenderEndTime-simStartTime)*1e-6-1))
@@ -685,10 +688,10 @@ if __name__ == '__main__':
 
     # Define loop End Time, Start the bagfile
     # StartBagAt is one second before StartRecAt. PlayDuration is one Second more.
-    loopEndTime = time.time_ns()//1000 + int(1e6*(playDuration+1))
+    loopEndTime = time.time_ns()//1000 + int(1e6*(recDuration+1))
     if playBag:
         playerProc = subprocess.Popen(
-            ['rosbag', 'play', bagFile, '-s %f' % startBagAt, '-u %f' % (playDuration+1)], cwd=bagLocation)
+            ['rosbag', 'play', bagFile, '-s %f' % startBagAt, '-u %f' % (recDuration+1)], cwd=bagLocation)
 
     # Render for the expected time
     while time.time_ns()//1000 < loopEndTime:
@@ -705,7 +708,7 @@ if __name__ == '__main__':
         kill(playerProc.pid)
     
 
-    realTimeSpeed = 100*playDuration / \
+    realTimeSpeed = 100*recDuration / \
         ((AllButRenderEndTime-simStartTime)*1e-6-1)
 
     # Create the logfile

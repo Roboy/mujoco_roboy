@@ -137,7 +137,7 @@
                 <geom name="shoulder_left_ball" type="sphere" pos="0.0 0.0 0.0" zaxis="0 1 0" size=".025 .025" rgba="1 1 0.5 .5" mass="0.3" />
 
 				<inertial diaginertia="7.86417e-07 6.69919e-07 6.68396e-07" mass="0.00940856" pos="-0.000936989 -0.000780799 0.000572682" quat="0.919964 -0.0195359 0.228955 0.317592" />
-				<joint axis="0.97437 0 0.22495" limited="true" name="shoulder_left_axis0" pos="0 0 0" range="-0.001 0.0" />
+				<joint axis="0.97437 0 0.22495" limited="true" name="shoulder_left_axis0" pos="0 0 0" range="-1 0.3" />
 				<geom mesh="shoulder_left_link1" type="mesh" />
 				<body name="shoulder_left_link2" pos="0 0 0">
                     <geom name="shoulder_left_bar" type="cylinder" pos="0.0075 0.0 -0.1" zaxis="0 0 1" size=".015 .08" rgba="1 1 0.5 .5" mass="0.3" />
@@ -146,7 +146,7 @@
                     <site name="shoulder_left_bar_front" pos="0.0 -0.02 -0.075" size="0.01" rgba="0.7 0.8 0.95 1.0" group="1" />
 
 					<inertial diaginertia="1.11432e-08 1.11192e-08 1.09455e-08" mass="0.000782222" pos="-2.77912e-07 -9.17407e-07 2.13575e-05" quat="0.354832 0.541579 0.296234 0.702162" />
-					<joint axis="0 1 0" limited="true" name="shoulder_left_axis1" pos="0 0 0" range="-1.2 0" />
+					<joint axis="0 1 0" limited="true" name="shoulder_left_axis1" pos="0 0 0" range="-0.001 0.0" />
 					<geom mesh="shoulder_left_link2" type="mesh" />
 					<body name="upperarm_left" pos="0 0 0">
 						<inertial diaginertia="0.0194858 0.0151615 0.00597025" mass="2.53629" pos="0.0155271 0.00286341 -0.203999" quat="0.99963 -0.0142052 0.021431 0.00882814" />
