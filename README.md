@@ -22,6 +22,9 @@ Now the simulation can be started in a docker terminal using
 running it with the --help flag delivers information on how to use the program correctly:
 - python3 /code/src/simulation.py --help
 
+P=80000, I=200, D=5000 Seems to be a well working set of PID values.
+Per muscle PID values can be manually specified in simulation.py code line 230, overwriting the ones given to the argument parser.
+
 logfiles and plots are generated in /code/src/logfiles
 
 ### Iterating over arguments

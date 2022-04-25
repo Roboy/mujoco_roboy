@@ -222,14 +222,12 @@ for i in range(37):
     tendonNamesInner.append('motor%i' % i)
 tendonNames = [tendonNamesInner]
 
-
 Kp = float(P) * np.ones(nMotors)
 Kd = float(D) * np.ones(nMotors)
 Ki = float(I) * np.ones(nMotors)
 setpoint = np.zeros(nMotors)
 
 # Manually define PID values for specific musles:
-
 # Biceps
 Kp[np.arange(16, 17)] = 32100
 Ki[np.arange(16, 17)] = 188588
