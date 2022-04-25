@@ -1,5 +1,5 @@
 
-# Simulation for a tendon driven Robot: Roboy in MuJoCo
+# Roboy in MuJoCo - Simulation of a tendon driven Robot
 
 ### Setup
 - The code runs in a docker environment to ensure optimal compatibility.
